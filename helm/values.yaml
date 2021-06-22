@@ -1,0 +1,23 @@
+# Default values for proteus-aws-operator
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+nameOverride: ""
+fullnameOverride: ""
+
+deployment:
+  annotations: {}
+  labels: {}
+
+resourceTags:
+  # Configures the Proteus AWS Operator to always set key/value pairs tags on resources that it manages.
+  - services.k8s.aws.adobe.io/managed=true
+  - services.k8s.aws.adobe.io/created=%UTCNOW%
+  - services.k8s.aws.adobe.io/namespace=%KUBERNETES_NAMESPACE%
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # The name of the service account to use.
+  name: proteus-aws-operator
+  annotations: {}
