@@ -105,10 +105,10 @@ docker-build: test ## Build docker image with the manager.
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}
 
-build-helm: ## Build helm chart
+build-helm: kustomize k8split ## Build helm chart
 	mkdir -p build
-	bin/kustomize build config/default > build/kustomize.yaml
-	bin/k8split -o helm/templates build/kustomize.yaml
+	$(KUSTOMIZE) build config/default > build/kustomize.yaml
+	$(K8SPLIT) -o helm/templates build/kustomize.yaml
 	helm package -d build ./helm
 
 ##@ Deployment
@@ -134,6 +134,11 @@ controller-gen: ## Download controller-gen locally if necessary.
 KUSTOMIZE = $(shell pwd)/bin/kustomize
 kustomize: ## Download kustomize locally if necessary.
 	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+
+K8SPLIT = $(shell pwd)/bin/k8split
+k8split: ## Download k8split locally if necessary.
+	$(call go-get-tool,$(K8SPLIT),github.com/brendanjryan/k8split@v0.0.0-20201231030408-7469c28221ff)
+
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
