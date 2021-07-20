@@ -1,0 +1,24 @@
+# permissions for end users to edit dbreplicationgroups.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: dbreplicationgroup-editor-role
+rules:
+- apiGroups:
+  - dbreplicationgroups.rds.services.k8s.aws.adobe.io
+  resources:
+  - dbreplicationgroups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - dbreplicationgroups.rds.services.k8s.aws.adobe.io
+  resources:
+  - dbreplicationgroups/status
+  verbs:
+  - get

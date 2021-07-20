@@ -1,0 +1,13 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: proteus-aws-operator-leader-election-rolebinding
+    namespace: proteus-aws-operator-system
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: proteus-aws-operator-leader-election-role
+subjects:
+    - kind: ServiceAccount
+      name: proteus-aws-operator-controller-manager
+      namespace: proteus-aws-operator-system

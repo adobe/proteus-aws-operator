@@ -1,0 +1,52 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: manager-role
+rules:
+- apiGroups:
+  - dbreplicationgroups.rds.services.k8s.aws.adobe.io
+  resources:
+  - dbreplicationgroups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - dbreplicationgroups.rds.services.k8s.aws.adobe.io
+  resources:
+  - dbreplicationgroups/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - dbreplicationgroups.rds.services.k8s.aws.adobe.io
+  resources:
+  - dbreplicationgroups/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
+  - dbinstances
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
+  - dbinstances/finalizers
+  verbs:
+  - update
