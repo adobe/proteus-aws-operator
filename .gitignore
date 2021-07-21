@@ -5,6 +5,7 @@
 *.dll
 *.so
 *.dylib
+bin/*
 testbin/*
 
 # Build output
