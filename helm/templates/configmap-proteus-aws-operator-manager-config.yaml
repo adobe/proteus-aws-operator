@@ -15,4 +15,4 @@ data:
 kind: ConfigMap
 metadata:
     name: proteus-aws-operator-manager-config
-    namespace: proteus-aws-operator-system
+    namespace: ack-system

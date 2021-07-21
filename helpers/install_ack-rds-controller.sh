@@ -6,8 +6,6 @@
 set -x
 set -e
 
-: ${LOCAL:=false}
-
 if [[ -z $ARTIFACTORY_USER ]]; then
 	echo "ARTIFACTORY_USER must be set"
 fi
@@ -18,9 +16,9 @@ fi
 
 export HELM_EXPERIMENTAL_OCI=1
 export ACK_K8S_NAMESPACE=ack-system
-export RELEASE_VERSION=0.0.1
+export RELEASE_VERSION=0.0.4
 export CHART_REPO=helm-helm-dc-microservices-release
-export CHART_REF=$CHART_REPO/proteus-aws-operator
+export CHART_REF=$CHART_REPO/ack-rds-controller
 
 helm repo list | grep helm-helm-dc-microservices-release > /dev/null
 if [[ $? != 0 ]]; then
@@ -31,8 +29,4 @@ kubectl create namespace $ACK_K8S_NAMESPACE --dry-run=client -o yaml | kubectl a
 
 helm repo update
 
-if [[ $LOCAL ]]; then
-	helm install --namespace $ACK_K8S_NAMESPACE proteus-aws-operator ./helm
-else
-	helm install --namespace $ACK_K8S_NAMESPACE --version $RELEASE_VERSION proteus-aws-operator $CHART_REF
-fi
+helm install --namespace $ACK_K8S_NAMESPACE --version $RELEASE_VERSION ack-rds-controller $CHART_REF

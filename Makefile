@@ -105,10 +105,20 @@ docker-build: test ## Build docker image with the manager.
 docker-push: ## Push docker image with the manager.
 	docker push ${IMG}
 
+UNAME_S=$(shell uname -s)
+
 build-helm: kustomize k8split ## Build helm chart
 	mkdir -p build
 	$(KUSTOMIZE) build config/default > build/kustomize.yaml
+ifeq ($(UNAME_S),Darwin)
+	sed -i '.bak' 's/proteus-aws-operator-system/ack-system/g' build/kustomize.yaml
+	rm -Rf build/kustomize.yaml.bak
+else
+	sed -i 's/proteus-aws-operator-system/ack-system/g' build/kustomize.yaml
+endif
 	$(K8SPLIT) -o helm/templates build/kustomize.yaml
+	mv helm/templates/customresourcedefinition* helm/crds/
+	rm -Rf helm/templates/namespace-ack-system.yaml
 	helm package -d build ./helm
 
 ##@ Deployment

@@ -11,6 +11,10 @@ testbin/*
 # Build output
 build/*
 
+# Helm 
+helm/requirements.lock
+helm/charts
+
 # Test binary, build with `go test -c`
 *.test
 
@@ -18,7 +22,6 @@ build/*
 *.out
 
 # Kubernetes Generated files - skip generated files, except for vendored files
-
 !vendor/**/zz_generated.*
 
 # editor and IDE paraphernalia
