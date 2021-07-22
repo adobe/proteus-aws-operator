@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	cloud.google.com/go v0.81.0 // indirect
-	github.com/aws-controllers-k8s/rds-controller v0.0.3
+	github.com/aws-controllers-k8s/rds-controller v0.0.4
 	github.com/go-logr/logr v0.3.0
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect

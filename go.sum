@@ -83,10 +83,10 @@ github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da/go.mod h1:Q73ZrmV
 github.com/armon/go-radix v0.0.0-20180808171621-7fddfc383310/go.mod h1:ufUuZ+zHj4x4TnLV4JWEpy2hxWSpsRywHrMgIH9cCH8=
 github.com/asaskevich/govalidator v0.0.0-20180720115003-f9ffefc3facf/go.mod h1:lB+ZfQJz7igIIfQNfa7Ml4HSf2uFQQRzpGGRXenZAgY=
 github.com/asaskevich/govalidator v0.0.0-20190424111038-f61b66f89f4a/go.mod h1:lB+ZfQJz7igIIfQNfa7Ml4HSf2uFQQRzpGGRXenZAgY=
-github.com/aws-controllers-k8s/rds-controller v0.0.3 h1:bNzGmBdsXoutRYStnNKd55BS47sSR2gm2jkXo3AudpQ=
-github.com/aws-controllers-k8s/rds-controller v0.0.3/go.mod h1:AAL//xp82Tt2xb10JgpbrSuPfJxDMQzI7Eia0uKjVQ8=
-github.com/aws-controllers-k8s/runtime v0.4.0 h1:qsCp1OKXoSMtjS+6zlH65PN3/UkVJNbI/ybwYjPmhrY=
-github.com/aws-controllers-k8s/runtime v0.4.0/go.mod h1:xA2F18PJerBHaqrS4de1lpP7skeSMeStkmh+3x5sWvw=
+github.com/aws-controllers-k8s/rds-controller v0.0.4 h1:LjcQfRZIrp26lIreOIkRZPkWB837smjK3GQp8J1Y5nU=
+github.com/aws-controllers-k8s/rds-controller v0.0.4/go.mod h1:3Qb+OC8iKBS29Op5702i8NvlHAtWrAJr1XQu5+r/K4E=
+github.com/aws-controllers-k8s/runtime v0.6.0 h1:Up9pn9FfItYiItiSdT+FOfHQNKO8oSb5GU8pKH9JF8E=
+github.com/aws-controllers-k8s/runtime v0.6.0/go.mod h1:xA2F18PJerBHaqrS4de1lpP7skeSMeStkmh+3x5sWvw=
 github.com/aws/aws-sdk-go v1.37.4 h1:tWxrpMK/oRSXVnjUzhGeCWLR00fW0WF4V4sycYPPrJ8=
 github.com/aws/aws-sdk-go v1.37.4/go.mod h1:hcU610XS61/+aQV88ixoOzUoG7v3b31pl2zKMmprdro=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=

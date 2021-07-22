@@ -60,7 +60,7 @@ var _ = BeforeSuite(func() {
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{
 			filepath.Join("..", "config", "crd", "bases"),
-			filepath.Join(build.Default.GOPATH, "pkg", "mod", "github.com", "aws-controllers-k8s", "rds-controller@v0.0.3", "config", "crd", "bases"),
+			filepath.Join(build.Default.GOPATH, "pkg", "mod", "github.com", "aws-controllers-k8s", "rds-controller@v0.0.4", "config", "crd", "bases"),
 		},
 		ErrorIfCRDPathMissing: true,
 	}

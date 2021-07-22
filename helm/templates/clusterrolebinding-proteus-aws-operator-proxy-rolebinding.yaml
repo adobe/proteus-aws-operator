@@ -9,4 +9,4 @@ roleRef:
 subjects:
     - kind: ServiceAccount
       name: proteus-aws-operator-controller-manager
-      namespace: proteus-aws-operator-system
+      namespace: ack-system
