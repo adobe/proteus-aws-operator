@@ -33,8 +33,8 @@ import (
 
 	rds_types "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 
-	dbreplicationgroupv1alpha1 "github.com/adobe-platform/proteus-aws-operator/api/v1alpha1"
-	"github.com/adobe-platform/proteus-aws-operator/controllers"
+	rdsv1alpha1 "github.com/adobe-platform/proteus-aws-operator/apis/rds/v1alpha1"
+	rdscontrollers "github.com/adobe-platform/proteus-aws-operator/controllers/rds"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -49,7 +49,7 @@ func init() {
 	// DBInstance
 	utilruntime.Must(rds_types.AddToScheme(scheme))
 
-	utilruntime.Must(dbreplicationgroupv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(rdsv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -83,11 +83,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.DBReplicationGroupReconciler{
+	if err = (&rdscontrollers.DBReplicationGroupReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "DBReplicationGroup")
+		os.Exit(1)
+	}
+	if err = (&rdscontrollers.DBUserReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "DBUser")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder

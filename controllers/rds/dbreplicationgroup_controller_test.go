@@ -10,7 +10,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controllers
+package rds
 
 import (
 	"context"
@@ -26,7 +26,7 @@ import (
 
 	rds_types "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 
-	"github.com/adobe-platform/proteus-aws-operator/api/v1alpha1"
+	"github.com/adobe-platform/proteus-aws-operator/apis/rds/v1alpha1"
 )
 
 func intAddr(i int) *int {

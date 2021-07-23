@@ -6,12 +6,18 @@
 set -x
 set -e
 
-if [[ -z $ARTIFACTORY_USER ]]; then
+REGION=${REGION:-us-east-1}
+
+if [[ -z "$ARTIFACTORY_USER" ]]; then
 	echo "ARTIFACTORY_USER must be set"
 fi
 
-if [[ -z $ARTIFACTORY_API_TOKEN ]]; then
+if [[ -z "$ARTIFACTORY_API_TOKEN" ]]; then
 	echo "ARTIFACTORY_API_TOKEN must be set"
+fi
+
+if [[ -z "$AWS_ACCOUNT_ID" ]]; then
+	echo "AWS_ACCOUND_ID must be set"
 fi
 
 export HELM_EXPERIMENTAL_OCI=1
@@ -29,4 +35,4 @@ kubectl create namespace $ACK_K8S_NAMESPACE --dry-run=client -o yaml | kubectl a
 
 helm repo update
 
-helm install --namespace $ACK_K8S_NAMESPACE --version $RELEASE_VERSION ack-rds-controller $CHART_REF
+helm install --namespace $ACK_K8S_NAMESPACE --set aws.region=$REGION,aws.account_id=$AWS_ACCOUNT_ID --version $RELEASE_VERSION ack-rds-controller $CHART_REF

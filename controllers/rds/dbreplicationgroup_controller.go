@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controllers
+package rds
 
 import (
 	"context"
@@ -34,7 +34,7 @@ import (
 
 	"github.com/go-logr/logr"
 
-	"github.com/adobe-platform/proteus-aws-operator/api/v1alpha1"
+	"github.com/adobe-platform/proteus-aws-operator/apis/rds/v1alpha1"
 )
 
 const DefaultReplicas int = 1
@@ -69,9 +69,9 @@ func labelsForDBReplicationGroup(dbReplicationGroup *v1alpha1.DBReplicationGroup
 	}
 }
 
-//+kubebuilder:rbac:groups=dbreplicationgroups.rds.services.k8s.aws.adobe.io,resources=dbreplicationgroups,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=dbreplicationgroups.rds.services.k8s.aws.adobe.io,resources=dbreplicationgroups/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=dbreplicationgroups.rds.services.k8s.aws.adobe.io,resources=dbreplicationgroups/finalizers,verbs=update
+//+kubebuilder:rbac:groups=rds.services.k8s.aws.adobe.io,resources=dbreplicationgroups,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rds.services.k8s.aws.adobe.io,resources=dbreplicationgroups/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=rds.services.k8s.aws.adobe.io,resources=dbreplicationgroups/finalizers,verbs=update
 //+kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances/finalizers,verbs=update
 //+kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances,verbs=get;list;watch;create;update;patch;delete
 

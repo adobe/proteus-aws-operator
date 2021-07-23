@@ -6,9 +6,9 @@ metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.4.1
   creationTimestamp: null
-  name: dbreplicationgroups.dbreplicationgroups.rds.services.k8s.aws.adobe.io
+  name: dbreplicationgroups.rds.services.k8s.aws.adobe.io
 spec:
-  group: dbreplicationgroups.rds.services.k8s.aws.adobe.io
+  group: rds.services.k8s.aws.adobe.io
   names:
     kind: DBReplicationGroup
     listKind: DBReplicationGroupList

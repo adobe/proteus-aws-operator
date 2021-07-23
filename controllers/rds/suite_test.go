@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package controllers
+package rds
 
 import (
 	"go/build"
@@ -34,7 +34,7 @@ import (
 
 	rds_types "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 
-	dbreplicationgroupsv1alpha1 "github.com/adobe-platform/proteus-aws-operator/api/v1alpha1"
+	rdsv1alpha1 "github.com/adobe-platform/proteus-aws-operator/apis/rds/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -59,7 +59,7 @@ var _ = BeforeSuite(func() {
 	By("bootstrapping test environment")
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{
-			filepath.Join("..", "config", "crd", "bases"),
+			filepath.Join("..", "..", "config", "crd", "bases"),
 			filepath.Join(build.Default.GOPATH, "pkg", "mod", "github.com", "aws-controllers-k8s", "rds-controller@v0.0.4", "config", "crd", "bases"),
 		},
 		ErrorIfCRDPathMissing: true,
@@ -69,10 +69,13 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
-	err = dbreplicationgroupsv1alpha1.AddToScheme(scheme.Scheme)
+	err = rdsv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	err = rds_types.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = rdsv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	//+kubebuilder:scaffold:scheme
