@@ -20,22 +20,63 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
-
 // DBUserSpec defines the desired state of DBUser
 type DBUserSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// DBInstanceIdentifier is the identifier of the DBInstance to connect to when creating the DBUser.
+	//
+	// Note: Either DBClusterIdentifier or DBInstanceIdentifier must be specified, but not both
+	//
+	// +kubebuilder:validation:Optional
+	DBInstanceIdentifier *string `json:"dbInstanceIdentifier,omitempty"`
 
-	// Foo is an example field of DBUser. Edit dbuser_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// DBClusterIdentifier is the identifier of the Aurora cluster to connect to when creating the DBUser.
+	//
+	// Note: Either DBClusterIdentifier or DBInstanceIdentifier must be specified, but not both
+	//
+	// +kubebuilder:validation:Optional
+	DBClusterIdentifier *string `json:"dbClusterIdentifier,omitempty"`
+
+	// Username is the role name of the DBUser to create
+	// +kubebuilder:validation:Required
+	Username *string `json:"username"`
+
+	// Password is the password of the DBUser to create.
+	//
+	// Default: No user password is created
+	//
+	// Note: Either Password or UseIAMAuthentication must be specified, but not both
+	//
+	// +kubebuilder:validation:Optional
+	Password *string `json:"password"`
+
+	// UseIAMAuthentication is a boolean value which specifies whether or not to use AWS IAM for Authentication
+	// instead of a password.
+	//
+	// See: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.DBAccounts.html
+	//
+	// Note: Either Password or UseIAMAuthentication must be specified, but not both
+	//
+	// +kubebuilder:validation:Optional
+	UseIAMAuthentication *bool `json:"useIAMAuthentication"`
+
+	// GrantStatement is the GRANT statement run after user creation to provide the user specific privileges.
+	//
+	// Note: The RDS Master User (DBInstance.MasterUsername) does not have super user privileges. Thus, you
+	//       cannot use `GRANT ALL PRIVILEGES ON *.* to ?` to grant all privileges to a user.
+	//       See: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.MasterAccounts.html
+	//
+	// +kubebuilder:validation:Required
+	GrantStatement *string `json:"grantStatement"`
+
+	// ApplyGrantWhenExists is a boolean value which specifies whether or not to apply GrantStatement even if
+	// the user already exists.
+	// +kubebuilder:validation:Optional
+	ApplyGrantWhenExists *bool `json:"applyGrantWhenExists,omitempty"`
 }
 
 // DBUserStatus defines the observed state of DBUser
 type DBUserStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	DBUsers *[]DBUser `json:"dbUsers"`
 }
 
 //+kubebuilder:object:root=true
