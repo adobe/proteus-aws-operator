@@ -21,7 +21,7 @@ import (
 
 	"github.com/jinzhu/copier"
 
-	k8s_errors "k8s.io/apimachinery/pkg/api/errors"
+	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -30,7 +30,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 
-	rds_types "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	rdstypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 
 	"github.com/go-logr/logr"
 
@@ -51,7 +51,7 @@ const (
 // DBInstanceAction contains a DBInstance and a corresponding action to perform on it
 type DBInstanceAction struct {
 	Action   ActionType
-	Instance *rds_types.DBInstance
+	Instance *rdstypes.DBInstance
 }
 
 // DBReplicationGroupReconciler reconciles a DBReplicationGroup object
@@ -89,10 +89,7 @@ func (r *DBReplicationGroupReconciler) Reconcile(ctx context.Context, req ctrl.R
 	dbReplicationGroup := &v1alpha1.DBReplicationGroup{}
 	err := r.Get(ctx, req.NamespacedName, dbReplicationGroup)
 	if err != nil {
-		if k8s_errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
+		if k8serr.IsNotFound(err) {
 			log.Info("DBReplicationGroup resource not found. Ignoring since object must be deleted")
 			return ctrl.Result{}, nil
 		}
@@ -106,7 +103,7 @@ func (r *DBReplicationGroupReconciler) Reconcile(ctx context.Context, req ctrl.R
 	r.Log.V(1).Info("Successfully retrieved dbReplicationGroup")
 
 	r.Log.V(1).Info("Fetching current instance map")
-	instanceMap := map[string]rds_types.DBInstance{}
+	instanceMap := map[string]rdstypes.DBInstance{}
 	err = r.currentInstanceMap(ctx, dbReplicationGroup, instanceMap)
 
 	if err != nil {
@@ -174,10 +171,10 @@ func (r *DBReplicationGroupReconciler) Reconcile(ctx context.Context, req ctrl.R
 }
 
 // currentInstanceMap returns a map of DBInstanceIdentifier to DBInstance of the current instances in the cluster
-func (r *DBReplicationGroupReconciler) currentInstanceMap(ctx context.Context, dbReplicationGroup *v1alpha1.DBReplicationGroup, instanceMap map[string]rds_types.DBInstance) error {
+func (r *DBReplicationGroupReconciler) currentInstanceMap(ctx context.Context, dbReplicationGroup *v1alpha1.DBReplicationGroup, instanceMap map[string]rdstypes.DBInstance) error {
 	// Get the current DBInstances in the cluster
 	r.Log.V(2).Info("Fetching current instances in cluster")
-	currentInstances := &rds_types.DBInstanceList{}
+	currentInstances := &rdstypes.DBInstanceList{}
 	listOpts := []client.ListOption{
 		client.InNamespace(dbReplicationGroup.Namespace),
 		client.MatchingLabels(labelsForDBReplicationGroup(dbReplicationGroup)),
@@ -201,7 +198,7 @@ func (r *DBReplicationGroupReconciler) currentInstanceMap(ctx context.Context, d
 }
 
 // requestedInstanceActions returns a list of DBInstanceAction instances which contain the Instance+Action(create, update, delete) operation needed
-func (r *DBReplicationGroupReconciler) requestedInstanceActions(ctx context.Context, dbReplicationGroup *v1alpha1.DBReplicationGroup, instanceMap map[string]rds_types.DBInstance, instanceActions []DBInstanceAction) {
+func (r *DBReplicationGroupReconciler) requestedInstanceActions(ctx context.Context, dbReplicationGroup *v1alpha1.DBReplicationGroup, instanceMap map[string]rdstypes.DBInstance, instanceActions []DBInstanceAction) {
 	if dbReplicationGroup.Spec.DBInstance.MultiAZ != nil && *dbReplicationGroup.Spec.DBInstance.MultiAZ {
 		r.Log.Info("Warning: MultiAZ should not be set to true. Explicitly setting MultiAZ to false.")
 		dbReplicationGroup.Spec.DBInstance.MultiAZ = func() *bool { b := false; return &b }()
@@ -209,7 +206,7 @@ func (r *DBReplicationGroupReconciler) requestedInstanceActions(ctx context.Cont
 
 	r.Log.V(2).Info("Creating Instance Actions")
 
-	var instance *rds_types.DBInstance
+	var instance *rdstypes.DBInstance
 	var dbInstanceID string
 	var az_log logr.Logger
 
@@ -254,17 +251,17 @@ func (r *DBReplicationGroupReconciler) requestedInstanceActions(ctx context.Cont
 }
 
 // dbInstance returns a DBInstance that matches the request from the User
-func (r *DBReplicationGroupReconciler) dbInstance(ctx context.Context, dbReplicationGroup *v1alpha1.DBReplicationGroup, dbInstanceID string, az *string) *rds_types.DBInstance {
+func (r *DBReplicationGroupReconciler) dbInstance(ctx context.Context, dbReplicationGroup *v1alpha1.DBReplicationGroup, dbInstanceID string, az *string) *rdstypes.DBInstance {
 	r.Log.V(2).Info("Creating new instance", "DBInstanceIdentifier", dbInstanceID)
 
-	spec := rds_types.DBInstanceSpec{}
+	spec := rdstypes.DBInstanceSpec{}
 
 	copier.Copy(&spec, &dbReplicationGroup.Spec.DBInstance)
 
 	spec.AvailabilityZone = az
 	spec.DBInstanceIdentifier = &dbInstanceID
 
-	instance := &rds_types.DBInstance{
+	instance := &rdstypes.DBInstance{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      dbInstanceID,
 			Namespace: dbReplicationGroup.Namespace,
@@ -287,6 +284,6 @@ func (r *DBReplicationGroupReconciler) dbInstance(ctx context.Context, dbReplica
 func (r *DBReplicationGroupReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.DBReplicationGroup{}).
-		Owns(&rds_types.DBInstance{}).
+		Owns(&rdstypes.DBInstance{}).
 		Complete(r)
 }

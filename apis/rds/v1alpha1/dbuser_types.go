@@ -18,6 +18,22 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
+)
+
+type IdentifierType int
+
+const (
+	IdentifierTypeCluster IdentifierType = iota
+	IdentifierTypeInstance
+)
+
+type Engine int
+
+const (
+	MySQL Engine = iota
+	Postgres
 )
 
 // DBUserSpec defines the desired state of DBUser
@@ -36,6 +52,26 @@ type DBUserSpec struct {
 	// +kubebuilder:validation:Optional
 	DBClusterIdentifier *string `json:"dbClusterIdentifier,omitempty"`
 
+	// Engine is the type of database engine to connect to
+	//
+	// Valid Values:
+	//
+	//		* mariadb
+	//
+	//		* mysql
+	//
+	//		* postgres
+	//
+	// Currently Unsupported Engines:
+	//
+	//		* oracle
+	//
+	//
+	//		* sqlserver
+	//
+	// +kubebuilder:validation:Required
+	Engine *string `json:"engine"`
+
 	// Username is the role name of the DBUser to create
 	// +kubebuilder:validation:Required
 	Username *string `json:"username"`
@@ -47,7 +83,7 @@ type DBUserSpec struct {
 	// Note: Either Password or UseIAMAuthentication must be specified, but not both
 	//
 	// +kubebuilder:validation:Optional
-	Password *string `json:"password"`
+	Password *ackv1alpha1.SecretKeyReference `json:"password"`
 
 	// UseIAMAuthentication is a boolean value which specifies whether or not to use AWS IAM for Authentication
 	// instead of a password.
@@ -61,8 +97,11 @@ type DBUserSpec struct {
 
 	// GrantStatement is the GRANT statement run after user creation to provide the user specific privileges.
 	//
+	// Note: use `?` to denote the username in the statement: `GRANT ... ON `%`.* TO ?`
+	//
 	// Note: The RDS Master User (DBInstance.MasterUsername) does not have super user privileges. Thus, you
-	//       cannot use `GRANT ALL PRIVILEGES ON *.* to ?` to grant all privileges to a user.
+	//       when you use `GRANT ALL PRIVILEGES ON `%`.* TO ?`, the user will still only be granted certain
+	//       privileges.
 	//       See: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.MasterAccounts.html
 	//
 	// +kubebuilder:validation:Required
@@ -76,7 +115,11 @@ type DBUserSpec struct {
 
 // DBUserStatus defines the observed state of DBUser
 type DBUserStatus struct {
-	DBUsers *[]DBUser `json:"dbUsers"`
+	IdentifierType IdentifierType `json:"identifierType"`
+
+	Engine Engine `json:"engine"`
+
+	Usernames []*string `json:"Usernames"`
 }
 
 //+kubebuilder:object:root=true

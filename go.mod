@@ -5,9 +5,13 @@ go 1.16
 require (
 	cloud.google.com/go v0.81.0 // indirect
 	github.com/aws-controllers-k8s/rds-controller v0.0.4
+	github.com/aws-controllers-k8s/runtime v0.7.1
+	github.com/aws/aws-sdk-go v1.40.9 // indirect
 	github.com/go-logr/logr v0.3.0
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/jackc/pgx/v4 v4.13.0
 	github.com/jinzhu/copier v0.3.2
 	github.com/json-iterator/go v1.1.11 // indirect
 	github.com/onsi/ginkgo v1.14.1
@@ -17,6 +21,7 @@ require (
 	golang.org/x/oauth2 v0.0.0-20210402161424-2e8d93401602 // indirect
 	golang.org/x/tools v0.1.2 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	k8s.io/api v0.20.2
 	k8s.io/apimachinery v0.20.2
 	k8s.io/client-go v0.20.2
 	sigs.k8s.io/controller-runtime v0.8.3

@@ -1,0 +1,55 @@
+apiVersion: rds.services.k8s.aws/v1alpha1
+kind: DBInstance
+metadata:
+  name: {{.DB_INSTANCE_ID}}_DBUSER
+spec:
+  databaseName: {{.DB_NAME}}
+  dbInstanceClass: db.m5.large
+  dbInstanceIdentifier: {{.DB_INSTANCE_ID}}_DBUSER
+  engine: mysql
+  multiAZ: true 
+  masterUsername: root
+  masterUserPassword:
+    namespace: {{.MASTER_USER_PASS_SECRET_NAMESPACE}}
+    name: {{.MASTER_USER_PASS_SECRET_NAME}}
+    key: {{.MASTER_USER_PASS_SECRET_KEY}}
+---
+# Admin user
+apiVersion: rds.services.k8s.aws.adobe.io/v1alpha1
+kind: DBUser
+metadata:
+  name: {{.DB_INSTANCE_ID}}_DBUSER_admin
+spec:
+  dbInstanceIdentifier: {{.DB_INSTANCE_ID}}_DBUSER
+  engine: mysql
+  username: admin 
+  useIAMAuthentication: true
+  # Note: The RDS Master User (DBInstance.MasterUsername) does not have super user privileges. Thus, you
+  #       when you use `GRANT ALL PRIVILEGES ON `%`.* TO ?`, the user will still only be granted certain
+  #       privileges.
+  #       See: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.MasterAccounts.html
+  grantStatement: "GRANT ALL ON `%`.* TO ? REQUIRE SSL"
+---
+# Application user
+apiVersion: rds.services.k8s.aws.adobe.io/v1alpha1
+kind: DBUser
+metadata:
+  name: {{.DB_INSTANCE_ID}}_DBUSER_application
+spec:
+  dbInstanceIdentifier: {{.DB_INSTANCE_ID}}_DBUSER
+  engine: mysql
+  username: application 
+  useIAMAuthentication: true
+  grantStatement: "GRANT SELECT, INSERT, UPDATE, DELETE ON `%`.* TO {} REQUIRE SSL"
+---
+# Reader user
+apiVersion: rds.services.k8s.aws.adobe.io/v1alpha1
+kind: DBUser
+metadata:
+  name: {{.DB_INSTANCE_ID}}_DBUSER_reader
+spec:
+  dbInstanceIdentifier: {{.DB_INSTANCE_ID}}_DBUSER
+  engine: mysql
+  username: reader 
+  useIAMAuthentication: true
+  grantStatement: "GRANT SELECT, INSERT, UPDATE, DELETE ON `%`.* TO {} REQUIRE SSL"
