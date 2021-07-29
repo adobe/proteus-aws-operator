@@ -33,7 +33,7 @@ import (
 
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+	ctrlutil "sigs.k8s.io/controller-runtime/pkg/controller/ctrlutil"
 	ctrllog "sigs.k8s.io/controller-runtime/pkg/log"
 
 	"github.com/go-logr/logr"
@@ -79,8 +79,6 @@ func (r *DBUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	if err != nil {
 		if k8serr.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
 			log.Info("DBUser resource not found. Ignoring since object must be deleted.")
 			return ctrl.Result{}, nil
 		}
@@ -105,14 +103,14 @@ func (r *DBUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	// Should we delete this DBUser?
 	if dbUser.GetDeletionTimestamp() != nil {
-		if controllerutil.ContainsFinalizer(dbUser, dbUserFinalizer) {
+		if ctrlutil.ContainsFinalizer(dbUser, dbUserFinalizer) {
 			err := r.finalizeDBUser(log, ctx, dbUser, db)
 			if err != nil {
 				return ctrl.Result{}, err
 			}
 
 			// Remove dbUserFinalizer.
-			controllerutil.RemoveFinalizer(dbUser, dbUserFinalizer)
+			ctrlutil.RemoveFinalizer(dbUser, dbUserFinalizer)
 			err = r.Update(ctx, dbUser)
 			if err != nil {
 				return ctrl.Result{}, err
@@ -121,12 +119,12 @@ func (r *DBUserReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		return ctrl.Result{}, nil
 	}
 
-	// Create user
-	r.generateDBUser(log, ctx, dbUser, db)
+	// Initialize user (create/grant permissions)
+	r.initializeDBUser(log, ctx, dbUser, db)
 
 	// Add finalizer for this DBUser
-	if !controllerutil.ContainsFinalizer(dbUser, dbUserFinalizer) {
-		controllerutil.AddFinalizer(dbUser, dbUserFinalizer)
+	if !ctrlutil.ContainsFinalizer(dbUser, dbUserFinalizer) {
+		ctrlutil.AddFinalizer(dbUser, dbUserFinalizer)
 		err = r.Update(ctx, dbUser)
 		if err != nil {
 			return ctrl.Result{}, err
@@ -217,7 +215,7 @@ func (r *DBUserReconciler) getDB(log logr.Logger, ctx context.Context, dbUser *r
 	return &DB{DB: db, Engine: engine}, nil
 }
 
-func (r *DBUserReconciler) generateDBUser(log logr.Logger, ctx context.Context, dbUser *rdsv1alpha1.DBUser, db *DB) error {
+func (r *DBUserReconciler) initializeDBUser(log logr.Logger, ctx context.Context, dbUser *rdsv1alpha1.DBUser, db *DB) error {
 	var err error = nil
 	var result sql.Result
 
