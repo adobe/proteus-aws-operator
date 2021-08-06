@@ -1,0 +1,128 @@
+
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.4.1
+  creationTimestamp: null
+  name: dbusers.rds.services.k8s.aws.adobe.io
+spec:
+  group: rds.services.k8s.aws.adobe.io
+  names:
+    kind: DBUser
+    listKind: DBUserList
+    plural: dbusers
+    singular: dbuser
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: DBUser is the Schema for the dbusers API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: DBUserSpec defines the desired state of DBUser
+            properties:
+              applyGrantWhenExists:
+                description: ApplyGrantWhenExists is a boolean value which specifies
+                  whether or not to apply GrantStatement even if the user already
+                  exists.
+                nullable: true
+                type: boolean
+              dbClusterIdentifier:
+                description: "DBClusterIdentifier is the identifier of the Aurora
+                  cluster to connect to when creating the DBUser. \n Note: Either
+                  DBClusterIdentifier or DBInstanceIdentifier must be specified, but
+                  not both"
+                nullable: true
+                type: string
+              dbInstanceIdentifier:
+                description: "DBInstanceIdentifier is the identifier of the DBInstance
+                  to connect to when creating the DBUser. \n Note: Either DBClusterIdentifier
+                  or DBInstanceIdentifier must be specified, but not both"
+                nullable: true
+                type: string
+              grantStatement:
+                description: "GrantStatement is the GRANT statement run after user
+                  creation to provide the user specific privileges. \n Note: use `?`
+                  to denote the username in the statement: `GRANT ... ON `%`.* TO
+                  ?` \n Note: The RDS Master User (DBInstance.MasterUsername) does
+                  not have super user privileges. Thus, you       when you use `GRANT
+                  ALL PRIVILEGES ON `%`.* TO ?`, the user will still only be granted
+                  certain       privileges.       See: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.MasterAccounts.html"
+                type: string
+              password:
+                description: "Password is the password of the DBUser to create. \n
+                  Default: No user password is created \n Note: Either Password or
+                  UseIAMAuthentication must be specified, but not both"
+                nullable: true
+                properties:
+                  key:
+                    description: Key is the key within the secret
+                    type: string
+                  name:
+                    description: Name is unique within a namespace to reference a
+                      secret resource.
+                    type: string
+                  namespace:
+                    description: Namespace defines the space within which the secret
+                      name must be unique.
+                    type: string
+                required:
+                - key
+                type: object
+              useIAMAuthentication:
+                description: "UseIAMAuthentication is a boolean value which specifies
+                  whether or not to use AWS IAM for Authentication instead of a password.
+                  \n See: https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.DBAccounts.html
+                  \n Note: Either Password or UseIAMAuthentication must be specified,
+                  but not both"
+                nullable: true
+                type: boolean
+              username:
+                description: Username is the role name of the DBUser to create
+                type: string
+            required:
+            - grantStatement
+            - username
+            type: object
+          status:
+            description: DBUserStatus defines the observed state of DBUser
+            properties:
+              Usernames:
+                items:
+                  type: string
+                type: array
+              engine:
+                type: integer
+              identifierType:
+                type: integer
+            required:
+            - Usernames
+            - engine
+            - identifierType
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

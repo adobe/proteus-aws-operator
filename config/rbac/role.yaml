@@ -6,32 +6,12 @@ metadata:
   creationTimestamp: null
   name: manager-role
 rules:
-- apiGroups:
-  - dbreplicationgroups.rds.services.k8s.aws.adobe.io
-  resources:
-  - dbreplicationgroups
+- resources:
+  - secrets
   verbs:
-  - create
-  - delete
   - get
   - list
-  - patch
-  - update
   - watch
-- apiGroups:
-  - dbreplicationgroups.rds.services.k8s.aws.adobe.io
-  resources:
-  - dbreplicationgroups/finalizers
-  verbs:
-  - update
-- apiGroups:
-  - dbreplicationgroups.rds.services.k8s.aws.adobe.io
-  resources:
-  - dbreplicationgroups/status
-  verbs:
-  - get
-  - patch
-  - update
 - apiGroups:
   - rds.services.k8s.aws
   resources:
@@ -49,4 +29,56 @@ rules:
   resources:
   - dbinstances/finalizers
   verbs:
+  - update
+- apiGroups:
+  - rds.services.k8s.aws.adobe.io
+  resources:
+  - dbreplicationgroups
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rds.services.k8s.aws.adobe.io
+  resources:
+  - dbreplicationgroups/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rds.services.k8s.aws.adobe.io
+  resources:
+  - dbreplicationgroups/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - rds.services.k8s.aws.adobe.io
+  resources:
+  - dbusers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rds.services.k8s.aws.adobe.io
+  resources:
+  - dbusers/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - rds.services.k8s.aws.adobe.io
+  resources:
+  - dbusers/status
+  verbs:
+  - get
+  - patch
   - update

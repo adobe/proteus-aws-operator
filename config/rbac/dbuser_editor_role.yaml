@@ -1,0 +1,24 @@
+# permissions for end users to edit dbusers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: dbuser-editor-role
+rules:
+- apiGroups:
+  - rds.services.k8s.aws.adobe.io
+  resources:
+  - dbusers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - rds.services.k8s.aws.adobe.io
+  resources:
+  - dbusers/status
+  verbs:
+  - get

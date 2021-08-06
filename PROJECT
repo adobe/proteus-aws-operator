@@ -1,6 +1,7 @@
-domain: adobe.io
+domain: services.k8s.aws.adobe.io
 layout:
 - go.kubebuilder.io/v3
+multigroup: true
 plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
@@ -11,9 +12,18 @@ resources:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: adobe.io
-  group: dbreplicationgroups.rds.services.k8s.aws
+  domain: services.k8s.aws.adobe.io
+  group: rds.services.k8s.adobe.io
   kind: DBReplicationGroup
   path: github.com/adobe-platform/proteus-aws-operator/api/v1alpha1
+  version: v1alpha1
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: services.k8s.aws.adobe.io
+  group: rds.services.k8s.aws.adobe.io
+  kind: DBUser
+  path: github.com/adobe-platform/proteus-aws-operator/apis/rds/v1alpha1
   version: v1alpha1
 version: "3"

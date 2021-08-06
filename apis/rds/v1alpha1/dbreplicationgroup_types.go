@@ -1,17 +1,14 @@
 /*
-Copyright Adobe Inc. or its affiliates. All Rights Reserved.
+Copyright 2021 Adobe. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+you may not use this file except in compliance with the License. You may obtain a copy
+of the License at http://www.apache.org/licenses/LICENSE-2.0
 
-	http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Unless required by applicable law or agreed to in writing, software distributed under
+the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+OF ANY KIND, either express or implied. See the License for the specific language
+governing permissions and limitations under the License.
 */
 
 package v1alpha1
@@ -19,7 +16,7 @@ package v1alpha1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	rds_types "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	rdstypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 )
 
 // DBReplicationGroupSpec defines the desired state of DBReplicationGroup
@@ -43,14 +40,14 @@ type DBReplicationGroupSpec struct {
 	// For more information see the ACK RDS Controller DBInstance API
 	//
 	// +kubebuilder:validation:Required
-	DBInstance *rds_types.DBInstanceSpec `json:"dbInstance"`
+	DBInstance *rdstypes.DBInstanceSpec `json:"dbInstance"`
 }
 
 // DBReplicationGroupStatus defines the observed state of DBReplicationGroup
 type DBReplicationGroupStatus struct {
 	DBInstanceBaseIdentifier *string `json:"dbInstanceBaseIdentifier"`
 
-	DBInstances []*rds_types.DBInstance `json:"dbInstances"`
+	DBInstanceIdentifiers []*string `json:"dbInstanceIdentifiers"`
 }
 
 //+kubebuilder:object:root=true

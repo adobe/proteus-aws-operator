@@ -10,6 +10,10 @@ Currently supported CustomResourceDefinitions (and related controllers)
 
     Used to create multiple DBInstance instances (NumReplicas in each AvailabilityZone) using the ACK RDS Controller.
 
+1. DBUser
+
+    Used to create users inside the actual Database engine
+
 Requirements
 ------------
 
@@ -30,7 +34,7 @@ Building
 --------
 To build the Docker image and create the deployment yaml files
 
-	make docker-build docker-push IMG="docker-proteus-aws-operator-test.dr-uw2.adobeitc.com/proteus-aws-operator:v0.0.1"
+	make docker-build docker-push
 
 Notes
 -----

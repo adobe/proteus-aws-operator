@@ -32,7 +32,7 @@ spec:
                     - --leader-elect
                   command:
                     - /manager
-                  image: docker-proteus-aws-operator-test.dr-uw2.adobeitc.com/proteus-aws-operator:v0.0.1
+                  image: {{ .Values.image.repo }}:{{ .Values.image.tag }}
                   livenessProbe:
                     httpGet:
                         path: /healthz

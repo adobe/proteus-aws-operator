@@ -13,4 +13,4 @@ kind: Kustomization
 images:
 - name: controller
   newName: docker-proteus-aws-operator-test.dr-uw2.adobeitc.com/proteus-aws-operator
-  newTag: v0.0.1
+  newTag: v0.0.3

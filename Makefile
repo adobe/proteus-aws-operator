@@ -3,7 +3,7 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= 0.0.1
+VERSION ?= 0.0.3
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -36,9 +36,15 @@ IMAGE_TAG_BASE ?= adobe.io/proteus-aws-operator
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
 # Image URL to use all building/pushing image targets
-IMG ?= controller:latest
+IMG ?= docker-proteus-aws-operator-test.dr-uw2.adobeitc.com/proteus-aws-operator:v$(VERSION)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
+
+ifneq (, $(filter $(VERBOSE), true 1))
+	VERBOSE_TESTS="-test.v -ginkgo.v"
+else
+	VERBOSE_TESTS= 
+endif
 
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
@@ -89,7 +95,7 @@ ENVTEST_ASSETS_DIR=$(shell pwd)/testbin
 test: manifests generate fmt vet ## Run tests.
 	mkdir -p ${ENVTEST_ASSETS_DIR}
 	test -f ${ENVTEST_ASSETS_DIR}/setup-envtest.sh || curl -sSLo ${ENVTEST_ASSETS_DIR}/setup-envtest.sh https://raw.githubusercontent.com/kubernetes-sigs/controller-runtime/v0.8.3/hack/setup-envtest.sh
-	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... -test.v -coverprofile cover.out
+	source ${ENVTEST_ASSETS_DIR}/setup-envtest.sh; fetch_envtest_tools $(ENVTEST_ASSETS_DIR); setup_envtest_env $(ENVTEST_ASSETS_DIR); go test ./... $(shell echo $(VERBOSE_TESTS)) -coverprofile cover.out
 
 ##@ Build
 
@@ -107,8 +113,9 @@ docker-push: ## Push docker image with the manager.
 
 UNAME_S=$(shell uname -s)
 
-build-helm: kustomize k8split ## Build helm chart
+helm-build: kustomize k8split ## Build helm chart
 	mkdir -p build
+	$(shell config/manager && $(KUSTOMIZE) edit set image controller=$(IMG))
 	$(KUSTOMIZE) build config/default > build/kustomize.yaml
 ifeq ($(UNAME_S),Darwin)
 	sed -i '.bak' 's/proteus-aws-operator-system/ack-system/g' build/kustomize.yaml
@@ -117,6 +124,17 @@ else
 	sed -i 's/proteus-aws-operator-system/ack-system/g' build/kustomize.yaml
 endif
 	$(K8SPLIT) -o helm/templates build/kustomize.yaml
+ifeq ($(UNAME_S),Darwin)
+	sed -i '.bak' 's/version:.*/version: $(VERSION)/g' helm/Chart.yaml
+	sed -i '.bak' 's/appVersion:.*/appVersion: $(VERSION)/g' helm/Chart.yaml
+	rm -Rf helm/Chart.yaml.bak
+	sed -i '.bak' 's|$(IMG)|{{ .Values.image.repo }}:{{ .Values.image.tag }}|g' helm/templates/deployment-proteus-aws-operator-controller-manager.yaml
+	rm -Rf helm/templates/deployment-proteus-aws-operator-controller-manager.yaml.bak
+else
+	sed -i 's/version:.*/version: $(VERSION)/g' helm/Chart.yaml
+	sed -i 's/appVersion:.*/appVersion: $(VERSION)/g' helm/Chart.yaml
+	sed -i 's|$(IMG)|{{ .Values.image.repo }}:{{ .Values.image.tag }}|g' helm/templates/deployment-proteus-aws-operator-controller-manager.yaml
+endif
 	mv helm/templates/customresourcedefinition* helm/crds/
 	rm -Rf helm/templates/namespace-ack-system.yaml
 	helm package -d build ./helm

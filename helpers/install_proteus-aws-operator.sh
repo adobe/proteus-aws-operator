@@ -18,7 +18,7 @@ fi
 
 export HELM_EXPERIMENTAL_OCI=1
 export ACK_K8S_NAMESPACE=ack-system
-export RELEASE_VERSION=0.0.1
+export RELEASE_VERSION=0.0.3
 export CHART_REPO=helm-helm-dc-microservices-release
 export CHART_REF=$CHART_REPO/proteus-aws-operator
 

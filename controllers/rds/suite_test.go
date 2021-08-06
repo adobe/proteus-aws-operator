@@ -1,24 +1,23 @@
 /*
-Copyright 2021.
+Copyright 2021 Adobe. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+you may not use this file except in compliance with the License. You may obtain a copy
+of the License at http://www.apache.org/licenses/LICENSE-2.0
 
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Unless required by applicable law or agreed to in writing, software distributed under
+the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+OF ANY KIND, either express or implied. See the License for the specific language
+governing permissions and limitations under the License.
 */
 
-package controllers
+package rds
 
 import (
 	"go/build"
+	"path"
 	"path/filepath"
+	"runtime"
 	"testing"
 
 	. "github.com/onsi/ginkgo"
@@ -32,11 +31,27 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	rds_types "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	rdstypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 
-	dbreplicationgroupsv1alpha1 "github.com/adobe-platform/proteus-aws-operator/api/v1alpha1"
+	rdsv1alpha1 "github.com/adobe-platform/proteus-aws-operator/apis/rds/v1alpha1"
 	//+kubebuilder:scaffold:imports
 )
+
+func boolAddr(b bool) *bool {
+	return &b
+}
+
+func intAddr(i int) *int {
+	return &i
+}
+
+func int64Addr(i int64) *int64 {
+	return &i
+}
+
+func strAddr(s string) *string {
+	return &s
+}
 
 // These tests use Ginkgo (BDD-style Go testing framework). Refer to
 // http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
@@ -57,9 +72,10 @@ var _ = BeforeSuite(func() {
 	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
 	By("bootstrapping test environment")
+	_, filename, _, _ := runtime.Caller(0)
 	testEnv = &envtest.Environment{
 		CRDDirectoryPaths: []string{
-			filepath.Join("..", "config", "crd", "bases"),
+			filepath.Join(path.Dir(filename), "..", "..", "config", "crd", "bases"),
 			filepath.Join(build.Default.GOPATH, "pkg", "mod", "github.com", "aws-controllers-k8s", "rds-controller@v0.0.4", "config", "crd", "bases"),
 		},
 		ErrorIfCRDPathMissing: true,
@@ -69,10 +85,13 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(cfg).NotTo(BeNil())
 
-	err = dbreplicationgroupsv1alpha1.AddToScheme(scheme.Scheme)
+	err = rdsv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
-	err = rds_types.AddToScheme(scheme.Scheme)
+	err = rdstypes.AddToScheme(scheme.Scheme)
+	Expect(err).NotTo(HaveOccurred())
+
+	err = rdsv1alpha1.AddToScheme(scheme.Scheme)
 	Expect(err).NotTo(HaveOccurred())
 
 	//+kubebuilder:scaffold:scheme
@@ -85,10 +104,17 @@ var _ = BeforeSuite(func() {
 	})
 	Expect(err).ToNot(HaveOccurred())
 
+	// DBReplicationGroup
 	err = (&DBReplicationGroupReconciler{
 		Client: k8sManager.GetClient(),
 		Scheme: k8sManager.GetScheme(),
-		Log:    ctrl.Log.WithName("controllers").WithName("DBReplicationGroup"),
+	}).SetupWithManager(k8sManager)
+	Expect(err).ToNot(HaveOccurred())
+
+	// DBUser
+	err = (&DBUserReconciler{
+		Client: k8sManager.GetClient(),
+		Scheme: k8sManager.GetScheme(),
 	}).SetupWithManager(k8sManager)
 	Expect(err).ToNot(HaveOccurred())
 

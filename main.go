@@ -1,17 +1,14 @@
 /*
-Copyright 2021.
+Copyright 2021 Adobe. All rights reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+you may not use this file except in compliance with the License. You may obtain a copy
+of the License at http://www.apache.org/licenses/LICENSE-2.0
 
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+Unless required by applicable law or agreed to in writing, software distributed under
+the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR REPRESENTATIONS
+OF ANY KIND, either express or implied. See the License for the specific language
+governing permissions and limitations under the License.
 */
 
 package main
@@ -31,10 +28,10 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	rds_types "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	rdstypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 
-	dbreplicationgroupv1alpha1 "github.com/adobe-platform/proteus-aws-operator/api/v1alpha1"
-	"github.com/adobe-platform/proteus-aws-operator/controllers"
+	rdsv1alpha1 "github.com/adobe-platform/proteus-aws-operator/apis/rds/v1alpha1"
+	rdscontrollers "github.com/adobe-platform/proteus-aws-operator/controllers/rds"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -47,9 +44,9 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	// DBInstance
-	utilruntime.Must(rds_types.AddToScheme(scheme))
+	utilruntime.Must(rdstypes.AddToScheme(scheme))
 
-	utilruntime.Must(dbreplicationgroupv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(rdsv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -83,11 +80,18 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&controllers.DBReplicationGroupReconciler{
+	if err = (&rdscontrollers.DBReplicationGroupReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "DBReplicationGroup")
+		os.Exit(1)
+	}
+	if err = (&rdscontrollers.DBUserReconciler{
+		Client: mgr.GetClient(),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "DBUser")
 		os.Exit(1)
 	}
 	//+kubebuilder:scaffold:builder
