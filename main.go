@@ -31,7 +31,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	rds_types "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	rdstypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 
 	rdsv1alpha1 "github.com/adobe-platform/proteus-aws-operator/apis/rds/v1alpha1"
 	rdscontrollers "github.com/adobe-platform/proteus-aws-operator/controllers/rds"
@@ -47,7 +47,7 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
 	// DBInstance
-	utilruntime.Must(rds_types.AddToScheme(scheme))
+	utilruntime.Must(rdstypes.AddToScheme(scheme))
 
 	utilruntime.Must(rdsv1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme

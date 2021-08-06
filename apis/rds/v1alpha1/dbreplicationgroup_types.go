@@ -19,7 +19,7 @@ package v1alpha1
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	rds_types "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	rdstypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 )
 
 // DBReplicationGroupSpec defines the desired state of DBReplicationGroup
@@ -43,14 +43,14 @@ type DBReplicationGroupSpec struct {
 	// For more information see the ACK RDS Controller DBInstance API
 	//
 	// +kubebuilder:validation:Required
-	DBInstance *rds_types.DBInstanceSpec `json:"dbInstance"`
+	DBInstance *rdstypes.DBInstanceSpec `json:"dbInstance"`
 }
 
 // DBReplicationGroupStatus defines the observed state of DBReplicationGroup
 type DBReplicationGroupStatus struct {
 	DBInstanceBaseIdentifier *string `json:"dbInstanceBaseIdentifier"`
 
-	DBInstances []*rds_types.DBInstance `json:"dbInstances"`
+	DBInstanceIdentifiers []*string `json:"dbInstanceIdentifiers"`
 }
 
 //+kubebuilder:object:root=true

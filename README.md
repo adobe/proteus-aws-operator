@@ -10,6 +10,10 @@ Currently supported CustomResourceDefinitions (and related controllers)
 
     Used to create multiple DBInstance instances (NumReplicas in each AvailabilityZone) using the ACK RDS Controller.
 
+1. DBUser
+
+    Used to create users inside the actual Database engine
+
 Requirements
 ------------
 

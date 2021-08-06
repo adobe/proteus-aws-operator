@@ -129,14 +129,14 @@ func (in *DBReplicationGroupStatus) DeepCopyInto(out *DBReplicationGroupStatus) 
 		*out = new(string)
 		**out = **in
 	}
-	if in.DBInstances != nil {
-		in, out := &in.DBInstances, &out.DBInstances
-		*out = make([]*apisv1alpha1.DBInstance, len(*in))
+	if in.DBInstanceIdentifiers != nil {
+		in, out := &in.DBInstanceIdentifiers, &out.DBInstanceIdentifiers
+		*out = make([]*string, len(*in))
 		for i := range *in {
 			if (*in)[i] != nil {
 				in, out := &(*in)[i], &(*out)[i]
-				*out = new(apisv1alpha1.DBInstance)
-				(*in).DeepCopyInto(*out)
+				*out = new(string)
+				**out = **in
 			}
 		}
 	}
@@ -221,11 +221,6 @@ func (in *DBUserSpec) DeepCopyInto(out *DBUserSpec) {
 	}
 	if in.DBClusterIdentifier != nil {
 		in, out := &in.DBClusterIdentifier, &out.DBClusterIdentifier
-		*out = new(string)
-		**out = **in
-	}
-	if in.Engine != nil {
-		in, out := &in.Engine, &out.Engine
 		*out = new(string)
 		**out = **in
 	}

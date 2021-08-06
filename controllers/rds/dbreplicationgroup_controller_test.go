@@ -24,18 +24,12 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
-	rds_types "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
+	ackv1alpha1 "github.com/aws-controllers-k8s/runtime/apis/core/v1alpha1"
+
+	rdstypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 
 	"github.com/adobe-platform/proteus-aws-operator/apis/rds/v1alpha1"
 )
-
-func intAddr(i int) *int {
-	return &i
-}
-
-func strAddr(s string) *string {
-	return &s
-}
 
 var _ = Describe("DBReplicationGroup controller", func() {
 
@@ -45,15 +39,19 @@ var _ = Describe("DBReplicationGroup controller", func() {
 
 		DBClusterName = "test-dbcluster"
 
-		timeout  = time.Second * 10
-		duration = time.Second * 10
-		interval = time.Millisecond * 250
+		overallTimeout float64 = 60.0 // seconds
+		timeout                = time.Second * 10
+		duration               = time.Second * 10
+		interval               = time.Millisecond * 250
 	)
 
 	Context("When updating DBReplicationGroup Status", func() {
-		It("Should create a DBCluster and related DBInstance's when new DBReplicationGroup's are created", func() {
-			By("By creating a new DBReplicationGroup")
+		It("Should update DBInstance's when DBReplicationGroup's are updated", func(done Done) {
 			ctx := context.Background()
+
+			c := make(chan bool, 1)
+
+			By("Creating a new DBReplicationGroup")
 			dbReplicationGroup := &v1alpha1.DBReplicationGroup{
 				TypeMeta: metav1.TypeMeta{
 					APIVersion: "rds.services.k8s.aws.adobe.io/v1alpha1",
@@ -64,9 +62,12 @@ var _ = Describe("DBReplicationGroup controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: v1alpha1.DBReplicationGroupSpec{
-					NumReplicas:       intAddr(2),
-					AvailabilityZones: []*string{},
-					DBInstance: &rds_types.DBInstanceSpec{
+					NumReplicas: intAddr(5),
+					AvailabilityZones: []*string{
+						strAddr("az1"),
+						strAddr("az2"),
+					},
+					DBInstance: &rdstypes.DBInstanceSpec{
 						DBInstanceIdentifier: strAddr("test-dbinstanceid"),
 						Engine:               strAddr("mysql"),
 						DBInstanceClass:      strAddr("db.m4.large"),
@@ -85,23 +86,56 @@ var _ = Describe("DBReplicationGroup controller", func() {
 				return true
 			}, timeout, interval).Should(BeTrue())
 
-			By("By checking that the DBReplicationGroup properly created a set of DBInstances")
-			currentInstances := &rds_types.DBInstanceList{}
+			By("Checking that the DBReplicationGroup properly created a set of DBInstances")
+			currentInstances := &rdstypes.DBInstanceList{}
 			listOpts := []client.ListOption{
 				client.InNamespace(dbReplicationGroup.Namespace),
 				client.MatchingLabels(labelsForDBReplicationGroup(dbReplicationGroup)),
 			}
+			expectedNumInstances := (len(dbReplicationGroup.Spec.AvailabilityZones) * *dbReplicationGroup.Spec.NumReplicas)
 			Eventually(func() bool {
 				err := k8sClient.List(ctx, currentInstances, listOpts...)
 				if err != nil {
 					return false
 				}
+				if len(currentInstances.Items) != expectedNumInstances {
+					return false
+				}
+				c <- true
 				return true
 			}, timeout, interval).Should(BeTrue())
 
-			By("By checking that the created DBInstance's have the correct names")
-			var check_map map[string]int
+			By("Waiting for DBInstances to be created")
+			Expect(<-c).To(BeTrue())
+
+			// Fake that the rds-controller is actually active in the k8s cluster
+			Expect(func() error {
+				writeInstance := currentInstances.Items[0]
+				for _, instance := range currentInstances.Items[1:len(currentInstances.Items)] {
+					instance.Status = rdstypes.DBInstanceStatus{
+						Conditions: []*ackv1alpha1.Condition{
+							&ackv1alpha1.Condition{
+								Type:   ackv1alpha1.ConditionTypeResourceSynced,
+								Status: "True",
+							},
+						},
+						ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
+							ARN:            (*ackv1alpha1.AWSResourceName)(strAddr("AWS-Resource-Name-12345")),
+							OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strAddr("1234567890")),
+						},
+						ReadReplicaSourceDBInstanceIdentifier: writeInstance.Spec.DBInstanceIdentifier,
+					}
+					err := k8sClient.Status().Update(context.TODO(), &instance)
+					if err != nil {
+						return err
+					}
+				}
+				return nil
+			}()).Should(Succeed())
+
+			By("Checking that the created DBInstance's have the correct names")
 			var dbInstanceID string
+			check_map := make(map[string]int)
 			Expect(func() bool {
 				for _, instance := range currentInstances.Items {
 					check_map[*instance.Spec.AvailabilityZone]++
@@ -115,7 +149,7 @@ var _ = Describe("DBReplicationGroup controller", func() {
 				return true
 			}()).Should(BeTrue())
 
-			By("By checking that the correct number of DBInstance's were created for the correct AZs")
+			By("Checking that the correct number of DBInstance's were created for the correct AZs")
 			Expect(func() bool {
 				for _, az := range dbReplicationGroup.Spec.AvailabilityZones {
 					if num_instances, ok := check_map[*az]; ok {
@@ -129,6 +163,78 @@ var _ = Describe("DBReplicationGroup controller", func() {
 
 				return true
 			}()).Should(BeTrue())
-		})
+
+			By("Patching DBReplicationGroup to have less instances and more AvailabilityZone's")
+			patch := client.MergeFrom(dbReplicationGroup.DeepCopy())
+			dbReplicationGroup.Spec.NumReplicas = intAddr(2)
+			dbReplicationGroup.Spec.AvailabilityZones = []*string{
+				strAddr("az1"),
+				// az2 is explicitly removed so we can check below
+				strAddr("az3"),
+				strAddr("az4"),
+				strAddr("az5"),
+			}
+			Expect(k8sClient.Patch(context.TODO(), dbReplicationGroup, patch)).Should(Succeed())
+
+			By("Checking that the DBReplicationGroup properly still has the expected number of DBInstances")
+			// currentInstances and listOpts are initialized above
+			expectedNumInstances = (len(dbReplicationGroup.Spec.AvailabilityZones) * *dbReplicationGroup.Spec.NumReplicas)
+			Eventually(func() bool {
+				err := k8sClient.List(ctx, currentInstances, listOpts...)
+				if err != nil {
+					return false
+				}
+				instances := make([]*string, 0, len(currentInstances.Items))
+				for _, instance := range currentInstances.Items {
+					if instance.GetDeletionTimestamp() == nil {
+						instances = append(instances, instance.Spec.DBInstanceIdentifier)
+					}
+				}
+				if len(instances) != expectedNumInstances {
+					return false
+				}
+				c <- true
+				return true
+			}, timeout, interval).Should(BeTrue())
+
+			By("Waiting for DBInstances to be updated")
+			Expect(<-c).To(BeTrue())
+
+			By("Checking that the existing/new DBInstance's have the correct names")
+			// check_map and dbInstanceID are declared above
+			check_map = make(map[string]int)
+			Expect(func() bool {
+				for _, instance := range currentInstances.Items {
+					if *instance.Spec.AvailabilityZone == "az2" {
+						return false
+					}
+					check_map[*instance.Spec.AvailabilityZone]++
+
+					dbInstanceID = fmt.Sprintf("%s-%s", *dbReplicationGroup.Spec.DBInstance.DBInstanceIdentifier, *instance.Spec.AvailabilityZone)
+
+					if !strings.HasPrefix(*instance.Spec.DBInstanceIdentifier, dbInstanceID) {
+						return false
+					}
+				}
+				return true
+			}()).Should(BeTrue())
+
+			By("Checking that the correct number of DBInstance's exist for the correct AZs")
+			Expect(func() bool {
+				for _, az := range dbReplicationGroup.Spec.AvailabilityZones {
+					if num_instances, ok := check_map[*az]; ok {
+						if num_instances != *dbReplicationGroup.Spec.NumReplicas {
+							return false
+						}
+					} else {
+						return false
+					}
+				}
+
+				return true
+			}()).Should(BeTrue())
+
+			close(done)
+		}, overallTimeout)
 	})
 })

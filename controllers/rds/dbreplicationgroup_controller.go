@@ -58,11 +58,12 @@ type DBInstanceAction struct {
 type DBReplicationGroupReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
-	Log    logr.Logger
 }
 
 // labelsForDBReplicationGroup returns the labels for selecting the resources for the given DBReplicationGroup
-func labelsForDBReplicationGroup(dbReplicationGroup *v1alpha1.DBReplicationGroup) map[string]string {
+func labelsForDBReplicationGroup(
+	dbReplicationGroup *v1alpha1.DBReplicationGroup,
+) map[string]string {
 	return map[string]string{
 		"DBReplicationGroupName":   dbReplicationGroup.ObjectMeta.Name,
 		"DBInstanceBaseIdentifier": *dbReplicationGroup.Spec.DBInstance.DBInstanceIdentifier,
@@ -72,15 +73,18 @@ func labelsForDBReplicationGroup(dbReplicationGroup *v1alpha1.DBReplicationGroup
 //+kubebuilder:rbac:groups=rds.services.k8s.aws.adobe.io,resources=dbreplicationgroups,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=rds.services.k8s.aws.adobe.io,resources=dbreplicationgroups/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=rds.services.k8s.aws.adobe.io,resources=dbreplicationgroups/finalizers,verbs=update
-//+kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances/finalizers,verbs=update
 //+kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 //
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.8.3/pkg/reconcile
-func (r *DBReplicationGroupReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+func (r *DBReplicationGroupReconciler) Reconcile(
+	ctx context.Context,
+	req ctrl.Request,
+) (ctrl.Result, error) {
 	log := ctrllog.FromContext(ctx)
 
 	log.Info("Creating or updating DBReplicationGroup", "req", req)
@@ -98,44 +102,48 @@ func (r *DBReplicationGroupReconciler) Reconcile(ctx context.Context, req ctrl.R
 		return ctrl.Result{}, err
 	}
 
-	r.Log = log.WithValues("DBReplicationGroupName", dbReplicationGroup.ObjectMeta.Name)
+	log = log.WithValues("DBReplicationGroupName", dbReplicationGroup.ObjectMeta.Name)
 
-	r.Log.V(1).Info("Successfully retrieved dbReplicationGroup")
+	log.V(1).Info("Successfully retrieved dbReplicationGroup")
 
-	r.Log.V(1).Info("Fetching current instance map")
+	log.V(1).Info("Fetching current instance map")
 	instanceMap := map[string]rdstypes.DBInstance{}
-	err = r.currentInstanceMap(ctx, dbReplicationGroup, instanceMap)
+	err = r.currentInstanceMap(log, ctx, dbReplicationGroup, instanceMap)
 
 	if err != nil {
 		// This error was already logged inside currentInstanceMap
 		return ctrl.Result{}, err
 	}
-	r.Log.V(1).Info("Successfully retrieved current instance map", "instanceMap", instanceMap)
+	log.V(1).Info("Successfully retrieved current instance map")
 
-	r.Log.V(1).Info("Fetching requested instances and corresponding actions")
-	instanceActions := []DBInstanceAction{}
-	r.requestedInstanceActions(ctx, dbReplicationGroup, instanceMap, instanceActions)
-	r.Log.V(1).Info("Successfully retrieved instances and actions")
+	log.V(1).Info("Fetching requested instances and corresponding actions")
+	instanceActions, instanceIDs := r.requestedInstanceActions(log, ctx, dbReplicationGroup, instanceMap)
+	log.V(1).Info("Successfully retrieved instances and actions")
+
+	log.V(1).Info("Performing requested actions on instances")
 
 	var actionStr string
 
-	r.Log.V(1).Info("Performing requested actions on instances")
-
 	for _, instanceAction := range instanceActions {
 		if instanceAction.Action == ActionCreate {
-			r.Log.V(2).Info("Creating instance", "instance", *instanceAction.Instance)
+			log.V(1).Info("Creating instance", "instance", *instanceAction.Instance)
 			err = r.Create(ctx, instanceAction.Instance)
 			actionStr = "create"
 		} else if instanceAction.Action == ActionUpdate {
-			r.Log.V(2).Info("Updating instance", "instance", *instanceAction.Instance)
+			log.V(1).Info("Updating instance", "instance", *instanceAction.Instance)
 			err = r.Update(ctx, instanceAction.Instance)
 			actionStr = "update"
 		} else if instanceAction.Action == ActionDelete {
-			r.Log.V(2).Info("Deleting instance", "instance", *instanceAction.Instance)
+			log.V(1).Info("Deleting instance", "instance", *instanceAction.Instance)
 			err = r.Delete(ctx, instanceAction.Instance)
 			actionStr = "delete"
+
+			if k8serr.IsNotFound(err) {
+				// The object has already been deleted, so ignore this error
+				err = nil
+			}
 		} else {
-			r.Log.Error(
+			log.Error(
 				errors.New("Invalid action"),
 				"Action", instanceAction.Action,
 				"DBInstance.Namespace", instanceAction.Instance.ObjectMeta.Namespace,
@@ -145,7 +153,7 @@ func (r *DBReplicationGroupReconciler) Reconcile(ctx context.Context, req ctrl.R
 		}
 
 		if err != nil {
-			r.Log.Error(
+			log.Error(
 				err,
 				fmt.Sprintf("Failed to %s DBInstance", actionStr),
 				"DBInstance.Namespace", instanceAction.Instance.ObjectMeta.Namespace,
@@ -156,24 +164,39 @@ func (r *DBReplicationGroupReconciler) Reconcile(ctx context.Context, req ctrl.R
 			return ctrl.Result{}, err
 		}
 
-		dbReplicationGroup.Status.DBInstances = append(dbReplicationGroup.Status.DBInstances, instanceAction.Instance)
-
-		r.Log.V(2).Info("Successfully performed action on instance", "action", instanceAction.Action, "instance", *instanceAction.Instance)
+		log.V(1).Info("Successfully performed action on instance", "action", instanceAction.Action, "instance", *instanceAction.Instance)
 	}
 
-	r.Log.V(1).Info("Successfully performed actions on all instances")
+	log.V(1).Info("Successfully performed actions on all instances")
 
-	dbReplicationGroup.Status.DBInstanceBaseIdentifier = dbReplicationGroup.Spec.DBInstance.DBInstanceIdentifier
+	// Update Status
+	updateInstanceIds := !reflect.DeepEqual(instanceIDs, dbReplicationGroup.Status.DBInstanceIdentifiers)
+	updateBaseInstanceIdentifier := dbReplicationGroup.Status.DBInstanceBaseIdentifier != dbReplicationGroup.Spec.DBInstance.DBInstanceIdentifier
+	if updateInstanceIds || updateBaseInstanceIdentifier {
+		dbReplicationGroup.Status.DBInstanceBaseIdentifier = dbReplicationGroup.Spec.DBInstance.DBInstanceIdentifier
+		dbReplicationGroup.Status.DBInstanceIdentifiers = instanceIDs
 
-	r.Log.Info("Successfully created or updated DBReplicationGroup", "req", req)
+		err := r.Status().Update(context.TODO(), dbReplicationGroup)
+		if err != nil {
+			log.Error(err, "Failed to update DBReplicationGroup status")
+			return ctrl.Result{}, err
+		}
+	}
+
+	log.Info("Successfully created or updated DBReplicationGroup", "req", req)
 
 	return ctrl.Result{}, nil
 }
 
 // currentInstanceMap returns a map of DBInstanceIdentifier to DBInstance of the current instances in the cluster
-func (r *DBReplicationGroupReconciler) currentInstanceMap(ctx context.Context, dbReplicationGroup *v1alpha1.DBReplicationGroup, instanceMap map[string]rdstypes.DBInstance) error {
+func (r *DBReplicationGroupReconciler) currentInstanceMap(
+	log logr.Logger,
+	ctx context.Context,
+	dbReplicationGroup *v1alpha1.DBReplicationGroup,
+	instanceMap map[string]rdstypes.DBInstance,
+) error {
 	// Get the current DBInstances in the cluster
-	r.Log.V(2).Info("Fetching current instances in cluster")
+	log.V(1).Info("Fetching current instances in cluster")
 	currentInstances := &rdstypes.DBInstanceList{}
 	listOpts := []client.ListOption{
 		client.InNamespace(dbReplicationGroup.Namespace),
@@ -183,55 +206,69 @@ func (r *DBReplicationGroupReconciler) currentInstanceMap(ctx context.Context, d
 
 	if err != nil {
 		// Error getting the list of DBInstances - requeue the request.
-		r.Log.Error(err, "Failed to get list of DBInstances")
+		log.Error(err, "Failed to get list of DBInstances")
 		return err
 	}
-	r.Log.V(2).Info("Successfully retrieved current instances in cluster")
+	log.V(1).Info("Successfully retrieved current instances in cluster")
 
-	r.Log.V(2).Info("Creating current instance map")
+	log.V(1).Info("Creating current instance map")
 	for _, instance := range currentInstances.Items {
-		instanceMap[*instance.Spec.DBInstanceIdentifier] = instance
+		// Don't include instances that are in the process of being deleted
+		if instance.GetDeletionTimestamp() == nil {
+			instanceMap[*instance.Spec.DBInstanceIdentifier] = instance
+		}
 	}
-	r.Log.V(2).Info("Successfully created current instance map", "instanceMap", instanceMap)
+	log.V(1).Info("Successfully created current instance map", "instanceMap", instanceMap)
 
 	return nil
 }
 
-// requestedInstanceActions returns a list of DBInstanceAction instances which contain the Instance+Action(create, update, delete) operation needed
-func (r *DBReplicationGroupReconciler) requestedInstanceActions(ctx context.Context, dbReplicationGroup *v1alpha1.DBReplicationGroup, instanceMap map[string]rdstypes.DBInstance, instanceActions []DBInstanceAction) {
+// requestedInstanceActions returns a list of DBInstanceAction instances which contain the Instance+Action(create, update, delete) operation
+// needed and a list of will-be active instanceIDs
+func (r *DBReplicationGroupReconciler) requestedInstanceActions(
+	log logr.Logger,
+	ctx context.Context,
+	dbReplicationGroup *v1alpha1.DBReplicationGroup,
+	instanceMap map[string]rdstypes.DBInstance,
+) ([]DBInstanceAction, []*string) {
 	if dbReplicationGroup.Spec.DBInstance.MultiAZ != nil && *dbReplicationGroup.Spec.DBInstance.MultiAZ {
-		r.Log.Info("Warning: MultiAZ should not be set to true. Explicitly setting MultiAZ to false.")
+		log.Info("Warning: MultiAZ should not be set to true. Explicitly setting MultiAZ to false.")
 		dbReplicationGroup.Spec.DBInstance.MultiAZ = func() *bool { b := false; return &b }()
 	}
 
-	r.Log.V(2).Info("Creating Instance Actions")
+	log.V(1).Info("Creating Instance Actions")
 
+	var instanceActions []DBInstanceAction
+	var instanceIDs []*string
 	var instance *rdstypes.DBInstance
 	var dbInstanceID string
 	var az_log logr.Logger
 
 	for _, az := range dbReplicationGroup.Spec.AvailabilityZones {
-		az_log = r.Log.WithValues("az", *az)
+		az_log = log.WithValues("az", *az)
 
-		az_log.V(2).Info("Creating AZ Instances")
+		az_log.V(1).Info("Creating AZ Instances")
 		for i := 0; i < *dbReplicationGroup.Spec.NumReplicas; i++ {
 			dbInstanceID = fmt.Sprintf("%s-%s-%d", *dbReplicationGroup.Spec.DBInstance.DBInstanceIdentifier, *az, i)
 
-			instance = r.dbInstance(ctx, dbReplicationGroup, dbInstanceID, az)
+			instance = r.dbInstance(log, ctx, dbReplicationGroup, dbInstanceID, az)
 
 			// If the instance is in the map, update it if needed
 			if currentInstance, ok := instanceMap[dbInstanceID]; ok {
 				if !reflect.DeepEqual(instance.Spec, currentInstance.Spec) {
-					az_log.V(2).Info("Instance will be updated", "instance", instance)
+					az_log.V(1).Info("Instance will be updated", "instance", instance)
 					instanceActions = append(instanceActions, DBInstanceAction{Action: ActionUpdate, Instance: instance})
 				}
 				// else; no change for the instance, so do nothing
 
+				instanceIDs = append(instanceIDs, instance.Spec.DBInstanceIdentifier)
+
 				// Remove the instance from the map so we don't delete it below
 				delete(instanceMap, dbInstanceID)
 			} else {
-				az_log.V(2).Info("Instance will be created", "instance", instance)
+				az_log.V(1).Info("Instance will be created", "instance", instance)
 				instanceActions = append(instanceActions, DBInstanceAction{Action: ActionCreate, Instance: instance})
+				instanceIDs = append(instanceIDs, instance.Spec.DBInstanceIdentifier)
 			}
 		}
 	}
@@ -240,19 +277,27 @@ func (r *DBReplicationGroupReconciler) requestedInstanceActions(ctx context.Cont
 	for _, instance := range instanceMap {
 		// Only Aurora read replica instances have a valid ReadReplicaSourceDBInstanceIdentifier
 		if instance.Status.ReadReplicaSourceDBInstanceIdentifier == nil {
-			r.Log.V(2).Info("Instance is write instance. Skipping deletion", "instance", instance)
+			log.V(1).Info("Instance is write instance. Skipping deletion", "instance", instance)
 		} else {
-			r.Log.V(2).Info("Instance will be deleted", "instance", instance)
+			log.V(1).Info("Instance will be deleted", "instance", instance)
 			instanceActions = append(instanceActions, DBInstanceAction{Action: ActionDelete, Instance: &instance})
 		}
 	}
 
-	r.Log.V(2).Info("Successfully created Instance Actions")
+	log.V(1).Info("Successfully created Instance Actions", "instanceActions", instanceActions)
+
+	return instanceActions, instanceIDs
 }
 
 // dbInstance returns a DBInstance that matches the request from the User
-func (r *DBReplicationGroupReconciler) dbInstance(ctx context.Context, dbReplicationGroup *v1alpha1.DBReplicationGroup, dbInstanceID string, az *string) *rdstypes.DBInstance {
-	r.Log.V(2).Info("Creating new instance", "DBInstanceIdentifier", dbInstanceID)
+func (r *DBReplicationGroupReconciler) dbInstance(
+	log logr.Logger,
+	ctx context.Context,
+	dbReplicationGroup *v1alpha1.DBReplicationGroup,
+	dbInstanceID string,
+	az *string,
+) *rdstypes.DBInstance {
+	log.V(1).Info("Creating new instance", "DBInstanceIdentifier", dbInstanceID)
 
 	spec := rdstypes.DBInstanceSpec{}
 
@@ -270,18 +315,18 @@ func (r *DBReplicationGroupReconciler) dbInstance(ctx context.Context, dbReplica
 		Spec: spec,
 	}
 
-	r.Log.V(2).Info("Created new instance", "DBInstanceIdentifier", dbInstanceID, "instance", *instance)
+	log.V(1).Info("Created new instance", "DBInstanceIdentifier", dbInstanceID, "instance", *instance)
 
 	// Set DBReplicationGroup instance as the owner and controller
-	r.Log.V(2).Info("Adding dbReplicationGroup as instance owner and controller", "DBInstanceIdentifier", dbInstanceID, "instance", *instance)
 	ctrl.SetControllerReference(dbReplicationGroup, instance, r.Scheme)
-	r.Log.V(2).Info("Added dbReplicationGroup as instance owner and controller", "DBInstanceIdentifier", dbInstanceID, "instance", *instance)
 
 	return instance
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *DBReplicationGroupReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *DBReplicationGroupReconciler) SetupWithManager(
+	mgr ctrl.Manager,
+) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&v1alpha1.DBReplicationGroup{}).
 		Owns(&rdstypes.DBInstance{}).

@@ -38,23 +38,10 @@ const (
 
 // DBUserSpec defines the desired state of DBUser
 type DBUserSpec struct {
-	// DBInstanceIdentifier is the identifier of the DBInstance to connect to when creating the DBUser.
+	// Note: MasterUsername, MasterUserPassword, and Engine are automatically pulled from the DBInstance
+	//       or DBCluster specified below
 	//
-	// Note: Either DBClusterIdentifier or DBInstanceIdentifier must be specified, but not both
-	//
-	// +kubebuilder:validation:Optional
-	DBInstanceIdentifier *string `json:"dbInstanceIdentifier,omitempty"`
-
-	// DBClusterIdentifier is the identifier of the Aurora cluster to connect to when creating the DBUser.
-	//
-	// Note: Either DBClusterIdentifier or DBInstanceIdentifier must be specified, but not both
-	//
-	// +kubebuilder:validation:Optional
-	DBClusterIdentifier *string `json:"dbClusterIdentifier,omitempty"`
-
-	// Engine is the type of database engine to connect to
-	//
-	// Valid Values:
+	// Valid Engines:
 	//
 	//		* mariadb
 	//
@@ -69,8 +56,22 @@ type DBUserSpec struct {
 	//
 	//		* sqlserver
 	//
-	// +kubebuilder:validation:Required
-	Engine *string `json:"engine"`
+
+	// DBInstanceIdentifier is the identifier of the DBInstance to connect to when creating the DBUser.
+	//
+	// Note: Either DBClusterIdentifier or DBInstanceIdentifier must be specified, but not both
+	//
+	// +kubebuilder:validation:Optional
+	// +nullable
+	DBInstanceIdentifier *string `json:"dbInstanceIdentifier,omitempty"`
+
+	// DBClusterIdentifier is the identifier of the Aurora cluster to connect to when creating the DBUser.
+	//
+	// Note: Either DBClusterIdentifier or DBInstanceIdentifier must be specified, but not both
+	//
+	// +kubebuilder:validation:Optional
+	// +nullable
+	DBClusterIdentifier *string `json:"dbClusterIdentifier,omitempty"`
 
 	// Username is the role name of the DBUser to create
 	// +kubebuilder:validation:Required
@@ -83,6 +84,7 @@ type DBUserSpec struct {
 	// Note: Either Password or UseIAMAuthentication must be specified, but not both
 	//
 	// +kubebuilder:validation:Optional
+	// +nullable
 	Password *ackv1alpha1.SecretKeyReference `json:"password"`
 
 	// UseIAMAuthentication is a boolean value which specifies whether or not to use AWS IAM for Authentication
@@ -93,6 +95,7 @@ type DBUserSpec struct {
 	// Note: Either Password or UseIAMAuthentication must be specified, but not both
 	//
 	// +kubebuilder:validation:Optional
+	// +nullable
 	UseIAMAuthentication *bool `json:"useIAMAuthentication"`
 
 	// GrantStatement is the GRANT statement run after user creation to provide the user specific privileges.
@@ -110,6 +113,7 @@ type DBUserSpec struct {
 	// ApplyGrantWhenExists is a boolean value which specifies whether or not to apply GrantStatement even if
 	// the user already exists.
 	// +kubebuilder:validation:Optional
+	// +nullable
 	ApplyGrantWhenExists *bool `json:"applyGrantWhenExists,omitempty"`
 }
 
