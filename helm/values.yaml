@@ -4,7 +4,7 @@
 
 image:
   repository: docker-proteus-aws-operator-test.dr-uw2.adobeitc.com/proteus-aws-operator
-  tag: v0.0.3
+  tag: v0.0.4
 
 nameOverride: ""
 fullnameOverride: ""
