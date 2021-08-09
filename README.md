@@ -34,6 +34,9 @@ Building
 --------
 To build the Docker image and create the deployment yaml files
 
+	export ARTIFACTORY_USER=<username>
+	export ARTIFACTORY_API_TOKEN=<api_token>
+	echo $ARTIFACTORY_API_TOKEN | docker login -u $ARTIFACTORY_USER --password-stdin docker-proteus-aws-operator-test.dr-uw2.adobeitc.com
 	make docker-build docker-push
 
 Notes

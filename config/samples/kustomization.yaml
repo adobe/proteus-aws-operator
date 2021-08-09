@@ -1,6 +1,7 @@
 ## Append samples you want in your CSV to this file as resources ##
 resources:
-- rds.services.k8s.aws.adobe.io_v1alpha1_dbreplicationgroup.yaml
-- rds.services.k8s.aws.adobe.io_v1alpha1_dbuser.yaml
-- rds_v1alpha1_dbuser.yaml
+- rds_v1alpha1_dbreplicationgroup_mysql.yaml
+- rds_v1alpha1_dbreplicationgroup_aurora.yaml
+- rds_v1alpha1_dbuser_mysql.yaml
+- rds_v1alpha1_dbuser_aurora.yaml
 #+kubebuilder:scaffold:manifestskustomizesamples

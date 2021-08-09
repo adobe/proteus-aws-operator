@@ -115,7 +115,7 @@ UNAME_S=$(shell uname -s)
 
 helm-build: kustomize k8split ## Build helm chart
 	mkdir -p build
-	$(shell config/manager && $(KUSTOMIZE) edit set image controller=$(IMG))
+	$(shell cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG))
 	$(KUSTOMIZE) build config/default > build/kustomize.yaml
 ifeq ($(UNAME_S),Darwin)
 	sed -i '.bak' 's/proteus-aws-operator-system/ack-system/g' build/kustomize.yaml
@@ -128,12 +128,12 @@ ifeq ($(UNAME_S),Darwin)
 	sed -i '.bak' 's/version:.*/version: $(VERSION)/g' helm/Chart.yaml
 	sed -i '.bak' 's/appVersion:.*/appVersion: $(VERSION)/g' helm/Chart.yaml
 	rm -Rf helm/Chart.yaml.bak
-	sed -i '.bak' 's|$(IMG)|{{ .Values.image.repo }}:{{ .Values.image.tag }}|g' helm/templates/deployment-proteus-aws-operator-controller-manager.yaml
+	sed -i '.bak' 's|$(IMG)|{{ .Values.image.repository }}:{{ .Values.image.tag }}|g' helm/templates/deployment-proteus-aws-operator-controller-manager.yaml
 	rm -Rf helm/templates/deployment-proteus-aws-operator-controller-manager.yaml.bak
 else
 	sed -i 's/version:.*/version: $(VERSION)/g' helm/Chart.yaml
 	sed -i 's/appVersion:.*/appVersion: $(VERSION)/g' helm/Chart.yaml
-	sed -i 's|$(IMG)|{{ .Values.image.repo }}:{{ .Values.image.tag }}|g' helm/templates/deployment-proteus-aws-operator-controller-manager.yaml
+	sed -i 's|$(IMG)|{{ .Values.image.repository }}:{{ .Values.image.tag }}|g' helm/templates/deployment-proteus-aws-operator-controller-manager.yaml
 endif
 	mv helm/templates/customresourcedefinition* helm/crds/
 	rm -Rf helm/templates/namespace-ack-system.yaml

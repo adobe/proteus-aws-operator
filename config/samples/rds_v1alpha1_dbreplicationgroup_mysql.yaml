@@ -2,24 +2,22 @@
 apiVersion: rds.services.k8s.aws/v1alpha1
 kind: DBInstance
 metadata:
-  name: write_$DB_INSTANCE_ID
+  name: {{.Values.DB_INSTANCE_ID}}-write
 spec:
-  databaseName: $DB_NAME
   dbInstanceClass: db.m5.large
-  dbInstanceIdentifier: write_$DB_INSTANCE_ID
+  dbInstanceIdentifier: {{.Values.DB_INSTANCE_ID}}-write
   engine: mysql
-  multiAZ: true 
   masterUsername: root
   masterUserPassword:
-    namespace: $MASTER_USER_PASS_SECRET_NAMESPACE
-    name: $MASTER_USER_PASS_SECRET_NAME
-    key: $MASTER_USER_PASS_SECRET_KEY
+    namespace: {{.Values.MASTER_USER_PASS_SECRET_NAMESPACE}}
+    name: {{.Values.MASTER_USER_PASS_SECRET_NAME}}
+    key: {{.Values.MASTER_USER_PASS_SECRET_KEY}}
 ---
 # DBReplicationGroup which will create the Read Replica Instances
 apiVersion: rds.services.k8s.aws.adobe.io/v1alpha1
 kind: DBReplicationGroup
 metadata:
-  name: ReplicationGroup_$DB_INSTANCE_ID
+  name: {{.Values.DB_INSTANCE_ID}}-DBReplicationGroup
 spec:
   numReplicas: 5
   availabilityZones:
@@ -28,13 +26,13 @@ spec:
     - us-east-1f
   dbInstance:
     availabilityZone: placeholder
-    databaseName: $DB_NAME
+    dbName: {{.Values.DB_NAME}}
     dbInstanceClass: db.m5.large
-    dbInstanceIdentifier: read_$DB_INSTANCE_ID
+    dbInstanceIdentifier: {{.Values.DB_INSTANCE_ID}}-read
     engine: mysql
     masterUsername: root
     masterUserPassword:
-      namespace: $MASTER_USER_PASS_SECRET_NAMESPACE
-      name: $MASTER_USER_PASS_SECRET_NAME
-      key: $MASTER_USER_PASS_SECRET_KEY
-    sourceDBInstanceIdentifier: write_$DB_INSTANCE_ID
+      namespace: {{.Values.MASTER_USER_PASS_SECRET_NAMESPACE}}
+      name: {{.Values.MASTER_USER_PASS_SECRET_NAME}}
+      key: {{.Values.MASTER_USER_PASS_SECRET_KEY}}
+    sourceDBInstanceIdentifier: {{.Values.DB_INSTANCE_ID}}-write

@@ -1,29 +1,28 @@
 apiVersion: rds.services.k8s.aws/v1alpha1
 kind: DBCluster
 metadata:
-  name: {{.DB_CLUSTER_ID}}_DBUSER
+  name: {{.Values.DB_CLUSTER_ID}}-DBUser-Aurora
 spec:
   availabilityZones:
     - us-east-1a
     - us-east-1b
     - us-east-1e
-  dbClusterIdentifier: {{.DB_CLUSTER_ID}}_DBUSER
-  databaseName: {{.DB_NAME}}
+  dbClusterIdentifier: {{.Values.DB_CLUSTER_ID}}-DBUser-Aurora
+  dbName: {{.Values.DB_NAME}}
   engine: aurora-mysql
   masterUsername: root
   masterUserPassword:
-    namespace: {{.MASTER_USER_PASS_SECRET_NAMESPACE}}
-    name: {{.MASTER_USER_PASS_SECRET_NAME}}
-    key: {{.MASTER_USER_PASS_SECRET_KEY}}
+    namespace: {{.Values.MASTER_USER_PASS_SECRET_NAMESPACE}}
+    name: {{.Values.MASTER_USER_PASS_SECRET_NAME}}
+    key: {{.Values.MASTER_USER_PASS_SECRET_KEY}}
 ---
 # Admin user
 apiVersion: rds.services.k8s.aws.adobe.io/v1alpha1
 kind: DBUser
 metadata:
-  name: {{.DB_CLUSTER_ID}}_DBUSER_admin
+  name: {{.Values.DB_CLUSTER_ID}}-DBUser-Aurora-admin
 spec:
-  dbClusterIdentifier: {{.DB_CLUSTER_ID}}_DBUSER
-  engine: mysql
+  dbClusterIdentifier: {{.Values.DB_CLUSTER_ID}}-DBUser-Aurora
   username: admin 
   useIAMAuthentication: true
   # Note: The RDS Master User (DBCluster.MasterUsername) does not have super user privileges. Thus, you
@@ -36,10 +35,9 @@ spec:
 apiVersion: rds.services.k8s.aws.adobe.io/v1alpha1
 kind: DBUser
 metadata:
-  name: {{.DB_CLUSTER_ID}}_DBUSER_application
+  name: {{.Values.DB_CLUSTER_ID}}-DBUser-Aurora-application
 spec:
-  dbClusterIdentifier: {{.DB_CLUSTER_ID}}_DBUSER
-  engine: mysql
+  dbClusterIdentifier: {{.Values.DB_CLUSTER_ID}}-DBUser-Aurora
   username: application 
   useIAMAuthentication: true
   grantStatement: "GRANT SELECT, INSERT, UPDATE, DELETE ON `%`.* TO {} REQUIRE SSL"
@@ -48,10 +46,9 @@ spec:
 apiVersion: rds.services.k8s.aws.adobe.io/v1alpha1
 kind: DBUser
 metadata:
-  name: {{.DB_CLUSTER_ID}}_DBUSER_reader
+  name: {{.Values.DB_CLUSTER_ID}}-DBUser-Aurora-reader
 spec:
-  dbClusterIdentifier: {{.DB_CLUSTER_ID}}_DBUSER
-  engine: mysql
+  dbClusterIdentifier: {{.Values.DB_CLUSTER_ID}}-DBUser-Aurora
   username: reader 
   useIAMAuthentication: true
-  grantStatement: "GRANT SELECT, INSERT, UPDATE, DELETE ON `%`.* TO {} REQUIRE SSL"
+  grantStatement: "GRANT SELECT ON `%`.* TO {} REQUIRE SSL"

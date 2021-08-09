@@ -2,27 +2,26 @@
 apiVersion: rds.services.k8s.aws/v1alpha1
 kind: DBCluster
 metadata:
-  name: $DB_CLUSTER_ID
+  name: {{.Values.DB_CLUSTER_ID}}
 spec:
   availabilityZones:
     - us-east-1a
     - us-east-1b
     - us-east-1e
-  dbClusterIdentifier: $DB_CLUSTER_ID
-  databaseName: $DB_NAME
+  dbClusterIdentifier: {{.Values.DB_CLUSTER_ID}}
   engine: aurora-mysql
   masterUsername: root
   masterUserPassword:
-    namespace: $MASTER_USER_PASS_SECRET_NAMESPACE
-    name: $MASTER_USER_PASS_SECRET_NAME
-    key: $MASTER_USER_PASS_SECRET_KEY
+    namespace: {{.Values.MASTER_USER_PASS_SECRET_NAMESPACE}}
+    name: {{.Values.MASTER_USER_PASS_SECRET_NAME}}
+    key: {{.Values.MASTER_USER_PASS_SECRET_KEY}}
 ---
 # DBReplicationGroup which will create all of the instances (Write/Read)
 # Note: AWS Aurora will automatically choose which instance (usually the first) to promote as the Write instance
 apiVersion: rds.services.k8s.aws.adobe.io/v1alpha1
 kind: DBReplicationGroup
 metadata:
-  name: ReplicationGroup_$DB_CLUSTER_ID
+  name: {{.Values.DB_CLUSTER_ID}}-DBReplicationGroup
 spec:
   numReplicas: 5
   availabilityZones:
@@ -30,13 +29,13 @@ spec:
     - us-east-1b
     - us-east-1e
   dbInstance:
-    databaseName: $DB_NAME
+    dbName: {{.Values.DB_NAME}}
     dbInstanceClass: db.t3.micro
-    dbInstanceIdentifier: $DB_INSTANCE_ID
-    dbClusterIdentifier: $DB_CLUSTER_ID
+    dbInstanceIdentifier: {{.Values.DB_INSTANCE_ID}}
+    dbClusterIdentifier: {{.Values.DB_CLUSTER_ID}}
     engine: aurora-mysql
     masterUsername: root
     masterUserPassword:
-      namespace: $MASTER_USER_PASS_SECRET_NAMESPACE
-      name: $MASTER_USER_PASS_SECRET_NAME
-      key: $MASTER_USER_PASS_SECRET_KEY
+      namespace: {{.Values.MASTER_USER_PASS_SECRET_NAMESPACE}}
+      name: {{.Values.MASTER_USER_PASS_SECRET_NAME}}
+      key: {{.Values.MASTER_USER_PASS_SECRET_KEY}}

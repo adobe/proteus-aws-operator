@@ -1,27 +1,25 @@
 apiVersion: rds.services.k8s.aws/v1alpha1
 kind: DBInstance
 metadata:
-  name: {{.DB_INSTANCE_ID}}_DBUSER
+  name: {{.Values.DB_INSTANCE_ID}}-DBUser-MySQL
 spec:
-  databaseName: {{.DB_NAME}}
+  dbName: {{.Values.DB_NAME}}
   dbInstanceClass: db.m5.large
-  dbInstanceIdentifier: {{.DB_INSTANCE_ID}}_DBUSER
+  dbInstanceIdentifier: {{.Values.DB_INSTANCE_ID}}-DBUser-MySQL
   engine: mysql
-  multiAZ: true 
   masterUsername: root
   masterUserPassword:
-    namespace: {{.MASTER_USER_PASS_SECRET_NAMESPACE}}
-    name: {{.MASTER_USER_PASS_SECRET_NAME}}
-    key: {{.MASTER_USER_PASS_SECRET_KEY}}
+    namespace: {{.Values.MASTER_USER_PASS_SECRET_NAMESPACE}}
+    name: {{.Values.MASTER_USER_PASS_SECRET_NAME}}
+    key: {{.Values.MASTER_USER_PASS_SECRET_KEY}}
 ---
 # Admin user
 apiVersion: rds.services.k8s.aws.adobe.io/v1alpha1
 kind: DBUser
 metadata:
-  name: {{.DB_INSTANCE_ID}}_DBUSER_admin
+  name: {{.Values.DB_INSTANCE_ID}}-DBUser-MySQL-admin
 spec:
-  dbInstanceIdentifier: {{.DB_INSTANCE_ID}}_DBUSER
-  engine: mysql
+  dbInstanceIdentifier: {{.Values.DB_INSTANCE_ID}}-DBUser-MySQL
   username: admin 
   useIAMAuthentication: true
   # Note: The RDS Master User (DBInstance.MasterUsername) does not have super user privileges. Thus, you
@@ -34,10 +32,9 @@ spec:
 apiVersion: rds.services.k8s.aws.adobe.io/v1alpha1
 kind: DBUser
 metadata:
-  name: {{.DB_INSTANCE_ID}}_DBUSER_application
+  name: {{.Values.DB_INSTANCE_ID}}-DBUser-MySQL-application
 spec:
-  dbInstanceIdentifier: {{.DB_INSTANCE_ID}}_DBUSER
-  engine: mysql
+  dbInstanceIdentifier: {{.Values.DB_INSTANCE_ID}}-DBUser-MySQL
   username: application 
   useIAMAuthentication: true
   grantStatement: "GRANT SELECT, INSERT, UPDATE, DELETE ON `%`.* TO {} REQUIRE SSL"
@@ -46,10 +43,9 @@ spec:
 apiVersion: rds.services.k8s.aws.adobe.io/v1alpha1
 kind: DBUser
 metadata:
-  name: {{.DB_INSTANCE_ID}}_DBUSER_reader
+  name: {{.Values.DB_INSTANCE_ID}}-DBUser-MySQL-reader
 spec:
-  dbInstanceIdentifier: {{.DB_INSTANCE_ID}}_DBUSER
-  engine: mysql
+  dbInstanceIdentifier: {{.Values.DB_INSTANCE_ID}}-DBUser-MySQL
   username: reader 
   useIAMAuthentication: true
-  grantStatement: "GRANT SELECT, INSERT, UPDATE, DELETE ON `%`.* TO {} REQUIRE SSL"
+  grantStatement: "GRANT SELECT ON `%`.* TO {} REQUIRE SSL"

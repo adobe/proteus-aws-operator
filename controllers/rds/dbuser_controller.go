@@ -62,7 +62,7 @@ type DBUserReconciler struct {
 //+kubebuilder:rbac:groups=rds.services.k8s.aws.adobe.io,resources=dbusers/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=rds.services.k8s.aws.adobe.io,resources=dbusers/finalizers,verbs=update
 //+kubebuilder:rbac:groups=rds.services.k8s.aws,resources=dbinstances,verbs=get;list;watch
-//+kubebuilder:rbac:groups=,resources=secrets,verbs=get;list;watch
+//+kubebuilder:rbac:groups="",resources=secrets,verbs=get;list;watch
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.

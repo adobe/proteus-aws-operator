@@ -5,6 +5,14 @@ metadata:
     name: proteus-aws-operator-manager-role
 rules:
     - apiGroups:
+        - ""
+      resources:
+        - secrets
+      verbs:
+        - get
+        - list
+        - watch
+    - apiGroups:
         - rds.services.k8s.aws
       resources:
         - dbinstances
