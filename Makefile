@@ -36,7 +36,7 @@ IMAGE_TAG_BASE ?= adobe.io/proteus-aws-operator
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
 # Image URL to use all building/pushing image targets
-IMG ?= docker-proteus-aws-operator-test.dr-uw2.adobeitc.com/proteus-aws-operator:v$(VERSION)
+IMG ?= docker-dc-micro-release.dr.corp.adobe.com/adobe-platform/proteus-aws-operator:v$(VERSION)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
