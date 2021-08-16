@@ -36,7 +36,8 @@ IMAGE_TAG_BASE ?= adobe.io/proteus-aws-operator
 BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 
 # Image URL to use all building/pushing image targets
-IMG ?= docker-dc-micro-release.dr.corp.adobe.com/adobe-platform/proteus-aws-operator:v$(VERSION)
+IMG_BASE ?= docker-dc-micro-release.dr.corp.adobe.com/adobe-platform/proteus-aws-operator
+IMG ?= $(IMG_BASE):v$(VERSION)
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
@@ -125,12 +126,18 @@ else
 endif
 	$(K8SPLIT) -o helm/templates build/kustomize.yaml
 ifeq ($(UNAME_S),Darwin)
+	sed -i '.bak' 's|repository:.*|repository: $(IMG_BASE)|g' helm/values.yaml
+	sed -i '.bak' 's/tag:.*/tag: v$(VERSION)/g' helm/values.yaml
+	rm -Rf helm/values.yaml.bak
 	sed -i '.bak' 's/version:.*/version: $(VERSION)/g' helm/Chart.yaml
+	sed -i '.bak' 's/appVersion:.*/appVersion: $(VERSION)/g' helm/Chart.yaml
 	sed -i '.bak' 's/appVersion:.*/appVersion: $(VERSION)/g' helm/Chart.yaml
 	rm -Rf helm/Chart.yaml.bak
 	sed -i '.bak' 's|$(IMG)|{{ .Values.image.repository }}:{{ .Values.image.tag }}|g' helm/templates/deployment-proteus-aws-operator-controller-manager.yaml
 	rm -Rf helm/templates/deployment-proteus-aws-operator-controller-manager.yaml.bak
 else
+	sed -i 's|repository:.*|repository: $(IMG_BASE)|g' helm/values.yaml
+	sed -i 's/tag:.*/tag: v$(VERSION)/g' helm/values.yaml
 	sed -i 's/version:.*/version: $(VERSION)/g' helm/Chart.yaml
 	sed -i 's/appVersion:.*/appVersion: $(VERSION)/g' helm/Chart.yaml
 	sed -i 's|$(IMG)|{{ .Values.image.repository }}:{{ .Values.image.tag }}|g' helm/templates/deployment-proteus-aws-operator-controller-manager.yaml
