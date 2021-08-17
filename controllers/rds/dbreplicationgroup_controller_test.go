@@ -63,15 +63,15 @@ var _ = Describe("DBReplicationGroup controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: v1alpha1.DBReplicationGroupSpec{
-					NumReplicas: intAddr(5),
+					NumReplicas: intRef(5),
 					AvailabilityZones: []*string{
-						strAddr("az1"),
-						strAddr("az2"),
+						strRef("az1"),
+						strRef("az2"),
 					},
 					DBInstance: &rdstypes.DBInstanceSpec{
-						DBInstanceIdentifier: strAddr("test-dbinstanceid"),
-						Engine:               strAddr("mysql"),
-						DBInstanceClass:      strAddr("db.m4.large"),
+						DBInstanceIdentifier: strRef("test-dbinstanceid"),
+						Engine:               strRef("mysql"),
+						DBInstanceClass:      strRef("db.m4.large"),
 					},
 				},
 			}
@@ -121,8 +121,8 @@ var _ = Describe("DBReplicationGroup controller", func() {
 							},
 						},
 						ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-							ARN:            (*ackv1alpha1.AWSResourceName)(strAddr("AWS-Resource-Name-12345")),
-							OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strAddr("1234567890")),
+							ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+							OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
 						},
 						ReadReplicaSourceDBInstanceIdentifier: writeInstance.Spec.DBInstanceIdentifier,
 					}
@@ -167,13 +167,13 @@ var _ = Describe("DBReplicationGroup controller", func() {
 
 			By("Patching DBReplicationGroup to have less instances and more AvailabilityZone's")
 			patch := client.MergeFrom(dbReplicationGroup.DeepCopy())
-			dbReplicationGroup.Spec.NumReplicas = intAddr(2)
+			dbReplicationGroup.Spec.NumReplicas = intRef(2)
 			dbReplicationGroup.Spec.AvailabilityZones = []*string{
-				strAddr("az1"),
+				strRef("az1"),
 				// az2 is explicitly removed so we can check below
-				strAddr("az3"),
-				strAddr("az4"),
-				strAddr("az5"),
+				strRef("az3"),
+				strRef("az4"),
+				strRef("az5"),
 			}
 			Expect(k8sClient.Patch(context.TODO(), dbReplicationGroup, patch)).Should(Succeed())
 

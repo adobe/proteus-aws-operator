@@ -50,8 +50,9 @@ const (
 
 // DBInstanceAction contains a DBInstance and a corresponding action to perform on it
 type DBInstanceAction struct {
-	Action   ActionType
-	Instance *rdstypes.DBInstance
+	Action          ActionType
+	Instance        *rdstypes.DBInstance
+	CurrentInstance *rdstypes.DBInstance
 }
 
 // DBReplicationGroupReconciler reconciles a DBReplicationGroup object
@@ -130,8 +131,9 @@ func (r *DBReplicationGroupReconciler) Reconcile(
 			err = r.Create(ctx, instanceAction.Instance)
 			actionStr = "create"
 		} else if instanceAction.Action == ActionUpdate {
-			log.V(1).Info("Updating instance", "instance", *instanceAction.Instance)
-			err = r.Update(ctx, instanceAction.Instance)
+			log.V(1).Info("Patching instance", "instance", *instanceAction.Instance)
+			patch := client.MergeFrom(instanceAction.CurrentInstance)
+			err = r.Patch(context.TODO(), instanceAction.Instance, patch)
 			actionStr = "update"
 		} else if instanceAction.Action == ActionDelete {
 			log.V(1).Info("Deleting instance", "instance", *instanceAction.Instance)
@@ -176,7 +178,7 @@ func (r *DBReplicationGroupReconciler) Reconcile(
 		dbReplicationGroup.Status.DBInstanceBaseIdentifier = dbReplicationGroup.Spec.DBInstance.DBInstanceIdentifier
 		dbReplicationGroup.Status.DBInstanceIdentifiers = instanceIDs
 
-		err := r.Status().Update(context.TODO(), dbReplicationGroup)
+		err = r.Status().Update(ctx, dbReplicationGroup)
 		if err != nil {
 			log.Error(err, "Failed to update DBReplicationGroup status")
 			return ctrl.Result{}, err
@@ -257,7 +259,14 @@ func (r *DBReplicationGroupReconciler) requestedInstanceActions(
 			if currentInstance, ok := instanceMap[dbInstanceID]; ok {
 				if !reflect.DeepEqual(instance.Spec, currentInstance.Spec) {
 					az_log.V(1).Info("Instance will be updated", "instance", instance)
-					instanceActions = append(instanceActions, DBInstanceAction{Action: ActionUpdate, Instance: instance})
+					instanceActions = append(
+						instanceActions,
+						DBInstanceAction{
+							Action:          ActionUpdate,
+							Instance:        instance,
+							CurrentInstance: &currentInstance,
+						},
+					)
 				}
 				// else; no change for the instance, so do nothing
 
