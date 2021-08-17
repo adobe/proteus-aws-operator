@@ -87,7 +87,7 @@ var _ = Describe("DBUser controller", func() {
 					Name:      PasswordSecretName,
 					Namespace: Namespace,
 				},
-				Immutable: boolAddr(true),
+				Immutable: boolRef(true),
 				StringData: map[string]string{
 					PasswordSecretKey: PasswordSecretValue,
 				},
@@ -125,10 +125,10 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdstypes.DBInstanceSpec{
-					DBInstanceIdentifier: strAddr(DBInstanceName),
-					Engine:               strAddr("mysql"),
-					DBInstanceClass:      strAddr("db.m4.large"),
-					MasterUsername:       strAddr("root"),
+					DBInstanceIdentifier: strRef(DBInstanceName),
+					Engine:               strRef("mysql"),
+					DBInstanceClass:      strRef("db.m4.large"),
+					MasterUsername:       strRef("root"),
 					MasterUserPassword:   secretKeyReference,
 				},
 				Status: rdstypes.DBInstanceStatus{
@@ -139,13 +139,13 @@ var _ = Describe("DBUser controller", func() {
 						},
 					},
 					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strAddr("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strAddr("1234567890")),
+						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
 					},
 					Endpoint: &rdstypes.Endpoint{
-						Address:      strAddr("test-hostname"),
-						HostedZoneID: strAddr("test-hostedzoneid"),
-						Port:         int64Addr(3306),
+						Address:      strRef("test-hostname"),
+						HostedZoneID: strRef("test-hostedzoneid"),
+						Port:         int64Ref(3306),
 					},
 				},
 			}
@@ -195,10 +195,10 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdsv1alpha1.DBUserSpec{
-					DBInstanceIdentifier: strAddr(DBInstanceName),
-					Username:             strAddr("test-username"),
+					DBInstanceIdentifier: strRef(DBInstanceName),
+					Username:             strRef("test-username"),
 					Password:             secretKeyReference,
-					GrantStatement:       strAddr(GrantStatement),
+					GrantStatement:       strRef(GrantStatement),
 				},
 			}
 			Expect(k8sClient.Create(ctx, dbUser)).Should(Succeed())
@@ -283,7 +283,7 @@ var _ = Describe("DBUser controller", func() {
 					Name:      PasswordSecretName,
 					Namespace: Namespace,
 				},
-				Immutable: boolAddr(true),
+				Immutable: boolRef(true),
 				StringData: map[string]string{
 					PasswordSecretKey: PasswordSecretValue,
 				},
@@ -321,10 +321,10 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdstypes.DBInstanceSpec{
-					DBInstanceIdentifier: strAddr(DBInstanceName),
-					Engine:               strAddr("mysql"),
-					DBInstanceClass:      strAddr("db.m4.large"),
-					MasterUsername:       strAddr("root"),
+					DBInstanceIdentifier: strRef(DBInstanceName),
+					Engine:               strRef("mysql"),
+					DBInstanceClass:      strRef("db.m4.large"),
+					MasterUsername:       strRef("root"),
 					MasterUserPassword:   secretKeyReference,
 				},
 				Status: rdstypes.DBInstanceStatus{
@@ -335,13 +335,13 @@ var _ = Describe("DBUser controller", func() {
 						},
 					},
 					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strAddr("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strAddr("1234567890")),
+						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
 					},
 					Endpoint: &rdstypes.Endpoint{
-						Address:      strAddr("test-hostname"),
-						HostedZoneID: strAddr("test-hostedzoneid"),
-						Port:         int64Addr(3306),
+						Address:      strRef("test-hostname"),
+						HostedZoneID: strRef("test-hostedzoneid"),
+						Port:         int64Ref(3306),
 					},
 				},
 			}
@@ -391,10 +391,10 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdsv1alpha1.DBUserSpec{
-					DBInstanceIdentifier: strAddr(DBInstanceName),
-					Username:             strAddr("test-username"),
-					UseIAMAuthentication: boolAddr(true),
-					GrantStatement:       strAddr("GRANT ALL PRIVILEGES ON `%`.* TO ?"),
+					DBInstanceIdentifier: strRef(DBInstanceName),
+					Username:             strRef("test-username"),
+					UseIAMAuthentication: boolRef(true),
+					GrantStatement:       strRef("GRANT ALL PRIVILEGES ON `%`.* TO ?"),
 				},
 			}
 			Expect(k8sClient.Create(ctx, dbUser)).Should(Succeed())
@@ -441,7 +441,7 @@ var _ = Describe("DBUser controller", func() {
 					Name:      PasswordSecretName,
 					Namespace: Namespace,
 				},
-				Immutable: boolAddr(true),
+				Immutable: boolRef(true),
 				StringData: map[string]string{
 					PasswordSecretKey: PasswordSecretValue,
 				},
@@ -479,10 +479,10 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdstypes.DBInstanceSpec{
-					DBInstanceIdentifier: strAddr(DBInstanceName),
-					Engine:               strAddr("postgres"),
-					DBInstanceClass:      strAddr("db.m4.large"),
-					MasterUsername:       strAddr("root"),
+					DBInstanceIdentifier: strRef(DBInstanceName),
+					Engine:               strRef("postgres"),
+					DBInstanceClass:      strRef("db.m4.large"),
+					MasterUsername:       strRef("root"),
 					MasterUserPassword:   secretKeyReference,
 				},
 				Status: rdstypes.DBInstanceStatus{
@@ -493,13 +493,13 @@ var _ = Describe("DBUser controller", func() {
 						},
 					},
 					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strAddr("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strAddr("1234567890")),
+						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
 					},
 					Endpoint: &rdstypes.Endpoint{
-						Address:      strAddr("test-hostname"),
-						HostedZoneID: strAddr("test-hostedzoneid"),
-						Port:         int64Addr(3306),
+						Address:      strRef("test-hostname"),
+						HostedZoneID: strRef("test-hostedzoneid"),
+						Port:         int64Ref(3306),
 					},
 				},
 			}
@@ -549,10 +549,10 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdsv1alpha1.DBUserSpec{
-					DBInstanceIdentifier: strAddr(DBInstanceName),
-					Username:             strAddr("test-username"),
+					DBInstanceIdentifier: strRef(DBInstanceName),
+					Username:             strRef("test-username"),
 					Password:             secretKeyReference,
-					GrantStatement:       strAddr(GrantStatement),
+					GrantStatement:       strRef(GrantStatement),
 				},
 			}
 			Expect(k8sClient.Create(ctx, dbUser)).Should(Succeed())
@@ -597,7 +597,7 @@ var _ = Describe("DBUser controller", func() {
 					Name:      PasswordSecretName,
 					Namespace: Namespace,
 				},
-				Immutable: boolAddr(true),
+				Immutable: boolRef(true),
 				StringData: map[string]string{
 					PasswordSecretKey: PasswordSecretValue,
 				},
@@ -635,10 +635,10 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdstypes.DBInstanceSpec{
-					DBInstanceIdentifier: strAddr(DBInstanceName),
-					Engine:               strAddr("postgres"),
-					DBInstanceClass:      strAddr("db.m4.large"),
-					MasterUsername:       strAddr("root"),
+					DBInstanceIdentifier: strRef(DBInstanceName),
+					Engine:               strRef("postgres"),
+					DBInstanceClass:      strRef("db.m4.large"),
+					MasterUsername:       strRef("root"),
 					MasterUserPassword:   secretKeyReference,
 				},
 				Status: rdstypes.DBInstanceStatus{
@@ -649,13 +649,13 @@ var _ = Describe("DBUser controller", func() {
 						},
 					},
 					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strAddr("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strAddr("1234567890")),
+						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
 					},
 					Endpoint: &rdstypes.Endpoint{
-						Address:      strAddr("test-hostname"),
-						HostedZoneID: strAddr("test-hostedzoneid"),
-						Port:         int64Addr(3306),
+						Address:      strRef("test-hostname"),
+						HostedZoneID: strRef("test-hostedzoneid"),
+						Port:         int64Ref(3306),
 					},
 				},
 			}
@@ -706,10 +706,10 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdsv1alpha1.DBUserSpec{
-					DBInstanceIdentifier: strAddr(DBInstanceName),
-					Username:             strAddr("test-username"),
-					UseIAMAuthentication: boolAddr(true),
-					GrantStatement:       strAddr("GRANT ALL PRIVILEGES ON `%`.* TO ?"),
+					DBInstanceIdentifier: strRef(DBInstanceName),
+					Username:             strRef("test-username"),
+					UseIAMAuthentication: boolRef(true),
+					GrantStatement:       strRef("GRANT ALL PRIVILEGES ON `%`.* TO ?"),
 				},
 			}
 			Expect(k8sClient.Create(ctx, dbUser)).Should(Succeed())
@@ -761,7 +761,7 @@ var _ = Describe("DBUser controller", func() {
 					Name:      PasswordSecretName,
 					Namespace: Namespace,
 				},
-				Immutable: boolAddr(true),
+				Immutable: boolRef(true),
 				StringData: map[string]string{
 					PasswordSecretKey: PasswordSecretValue,
 				},
@@ -799,9 +799,9 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdstypes.DBClusterSpec{
-					DBClusterIdentifier: strAddr(DBClusterName),
-					Engine:              strAddr("aurora-mysql"),
-					MasterUsername:      strAddr("root"),
+					DBClusterIdentifier: strRef(DBClusterName),
+					Engine:              strRef("aurora-mysql"),
+					MasterUsername:      strRef("root"),
 					MasterUserPassword:  secretKeyReference,
 				},
 				Status: rdstypes.DBClusterStatus{
@@ -812,10 +812,10 @@ var _ = Describe("DBUser controller", func() {
 						},
 					},
 					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strAddr("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strAddr("1234567890")),
+						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
 					},
-					Endpoint: strAddr("test-hostname:3306"),
+					Endpoint: strRef("test-hostname:3306"),
 				},
 			}
 			Expect(k8sClient.Create(ctx, dbCluster)).Should(Succeed())
@@ -864,10 +864,10 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdsv1alpha1.DBUserSpec{
-					DBClusterIdentifier: strAddr(DBClusterName),
-					Username:            strAddr("test-username"),
+					DBClusterIdentifier: strRef(DBClusterName),
+					Username:            strRef("test-username"),
 					Password:            secretKeyReference,
-					GrantStatement:      strAddr(GrantStatement),
+					GrantStatement:      strRef(GrantStatement),
 				},
 			}
 			Expect(k8sClient.Create(ctx, dbUser)).Should(Succeed())
@@ -912,7 +912,7 @@ var _ = Describe("DBUser controller", func() {
 					Name:      PasswordSecretName,
 					Namespace: Namespace,
 				},
-				Immutable: boolAddr(true),
+				Immutable: boolRef(true),
 				StringData: map[string]string{
 					PasswordSecretKey: PasswordSecretValue,
 				},
@@ -950,9 +950,9 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdstypes.DBClusterSpec{
-					DBClusterIdentifier: strAddr(DBClusterName),
-					Engine:              strAddr("aurora-mysql"),
-					MasterUsername:      strAddr("root"),
+					DBClusterIdentifier: strRef(DBClusterName),
+					Engine:              strRef("aurora-mysql"),
+					MasterUsername:      strRef("root"),
 					MasterUserPassword:  secretKeyReference,
 				},
 				Status: rdstypes.DBClusterStatus{
@@ -963,10 +963,10 @@ var _ = Describe("DBUser controller", func() {
 						},
 					},
 					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strAddr("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strAddr("1234567890")),
+						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
 					},
-					Endpoint: strAddr("test-hostname:3306"),
+					Endpoint: strRef("test-hostname:3306"),
 				},
 			}
 			Expect(k8sClient.Create(ctx, dbCluster)).Should(Succeed())
@@ -1015,10 +1015,10 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdsv1alpha1.DBUserSpec{
-					DBClusterIdentifier:  strAddr(DBClusterName),
-					Username:             strAddr("test-username"),
-					UseIAMAuthentication: boolAddr(true),
-					GrantStatement:       strAddr("GRANT ALL PRIVILEGES ON `%`.* TO ?"),
+					DBClusterIdentifier:  strRef(DBClusterName),
+					Username:             strRef("test-username"),
+					UseIAMAuthentication: boolRef(true),
+					GrantStatement:       strRef("GRANT ALL PRIVILEGES ON `%`.* TO ?"),
 				},
 			}
 			Expect(k8sClient.Create(ctx, dbUser)).Should(Succeed())
@@ -1065,7 +1065,7 @@ var _ = Describe("DBUser controller", func() {
 					Name:      PasswordSecretName,
 					Namespace: Namespace,
 				},
-				Immutable: boolAddr(true),
+				Immutable: boolRef(true),
 				StringData: map[string]string{
 					PasswordSecretKey: PasswordSecretValue,
 				},
@@ -1103,9 +1103,9 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdstypes.DBClusterSpec{
-					DBClusterIdentifier: strAddr(DBClusterName),
-					Engine:              strAddr("aurora-postgres"),
-					MasterUsername:      strAddr("root"),
+					DBClusterIdentifier: strRef(DBClusterName),
+					Engine:              strRef("aurora-postgres"),
+					MasterUsername:      strRef("root"),
 					MasterUserPassword:  secretKeyReference,
 				},
 				Status: rdstypes.DBClusterStatus{
@@ -1116,10 +1116,10 @@ var _ = Describe("DBUser controller", func() {
 						},
 					},
 					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strAddr("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strAddr("1234567890")),
+						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
 					},
-					Endpoint: strAddr("test-hostname:3306"),
+					Endpoint: strRef("test-hostname:3306"),
 				},
 			}
 			Expect(k8sClient.Create(ctx, dbCluster)).Should(Succeed())
@@ -1168,10 +1168,10 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdsv1alpha1.DBUserSpec{
-					DBClusterIdentifier: strAddr(DBClusterName),
-					Username:            strAddr("test-username"),
+					DBClusterIdentifier: strRef(DBClusterName),
+					Username:            strRef("test-username"),
 					Password:            secretKeyReference,
-					GrantStatement:      strAddr(GrantStatement),
+					GrantStatement:      strRef(GrantStatement),
 				},
 			}
 			Expect(k8sClient.Create(ctx, dbUser)).Should(Succeed())
@@ -1216,7 +1216,7 @@ var _ = Describe("DBUser controller", func() {
 					Name:      PasswordSecretName,
 					Namespace: Namespace,
 				},
-				Immutable: boolAddr(true),
+				Immutable: boolRef(true),
 				StringData: map[string]string{
 					PasswordSecretKey: PasswordSecretValue,
 				},
@@ -1254,9 +1254,9 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdstypes.DBClusterSpec{
-					DBClusterIdentifier: strAddr(DBClusterName),
-					Engine:              strAddr("aurora-postgres"),
-					MasterUsername:      strAddr("root"),
+					DBClusterIdentifier: strRef(DBClusterName),
+					Engine:              strRef("aurora-postgres"),
+					MasterUsername:      strRef("root"),
 					MasterUserPassword:  secretKeyReference,
 				},
 				Status: rdstypes.DBClusterStatus{
@@ -1267,10 +1267,10 @@ var _ = Describe("DBUser controller", func() {
 						},
 					},
 					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strAddr("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strAddr("1234567890")),
+						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
 					},
-					Endpoint: strAddr("test-hostname:3306"),
+					Endpoint: strRef("test-hostname:3306"),
 				},
 			}
 			Expect(k8sClient.Create(ctx, dbCluster)).Should(Succeed())
@@ -1320,10 +1320,10 @@ var _ = Describe("DBUser controller", func() {
 					Namespace: Namespace,
 				},
 				Spec: rdsv1alpha1.DBUserSpec{
-					DBClusterIdentifier:  strAddr(DBClusterName),
-					Username:             strAddr("test-username"),
-					UseIAMAuthentication: boolAddr(true),
-					GrantStatement:       strAddr("GRANT ALL PRIVILEGES ON `%`.* TO ?"),
+					DBClusterIdentifier:  strRef(DBClusterName),
+					Username:             strRef("test-username"),
+					UseIAMAuthentication: boolRef(true),
+					GrantStatement:       strRef("GRANT ALL PRIVILEGES ON `%`.* TO ?"),
 				},
 			}
 			Expect(k8sClient.Create(ctx, dbUser)).Should(Succeed())

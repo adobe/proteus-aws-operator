@@ -37,19 +37,19 @@ import (
 	//+kubebuilder:scaffold:imports
 )
 
-func boolAddr(b bool) *bool {
+func boolRef(b bool) *bool {
 	return &b
 }
 
-func intAddr(i int) *int {
+func intRef(i int) *int {
 	return &i
 }
 
-func int64Addr(i int64) *int64 {
+func int64Ref(i int64) *int64 {
 	return &i
 }
 
-func strAddr(s string) *string {
+func strRef(s string) *string {
 	return &s
 }
 
