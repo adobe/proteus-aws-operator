@@ -36,10 +36,11 @@ To build the Docker image and create the deployment yaml files
 
 	export ARTIFACTORY_USER=<username>
 	export ARTIFACTORY_API_TOKEN=<api_token>
-	echo $ARTIFACTORY_API_TOKEN | docker login -u $ARTIFACTORY_USER --password-stdin docker-proteus-aws-operator-test.dr-uw2.adobeitc.com
+	echo $ARTIFACTORY_API_TOKEN | docker login -u $ARTIFACTORY_USER --password-stdin docker-dc-micro-release.dr.corp.adobe.com/adobe-platform
 	make docker-build docker-push
 
-Notes
------
+Helm Chart Building
+-------------------
+To build the Helm chart
 
-1. Testing docker repository: `docker-proteus-aws-operator-test.dr-uw2.adobeitc.com`
+	make helm-build
