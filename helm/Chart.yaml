@@ -1,8 +1,8 @@
 apiVersion: v1
 name: proteus-aws-operator
 description: A Helm chart for Proteus AWS Operator
-version: 0.0.4
-appVersion: 0.0.4
+version: 0.0.5
+appVersion: 0.0.5
 home: https://github.com/adobe-platform/proteus-aws-operator
 icon: https://github.com/adobe-platform/proteus-aws-operator/raw/main/helm/logo.png
 sources:

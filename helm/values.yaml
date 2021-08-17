@@ -4,7 +4,7 @@
 
 image:
   repository: docker-dc-micro-release.dr.corp.adobe.com/adobe-platform/proteus-aws-operator
-  tag: v0.0.4
+  tag: v0.0.5
 
 nameOverride: ""
 fullnameOverride: ""
