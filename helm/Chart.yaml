@@ -3,13 +3,13 @@ name: proteus-aws-operator
 description: A Helm chart for Proteus AWS Operator
 version: 0.0.5
 appVersion: 0.0.5
-home: https://github.com/adobe-platform/proteus-aws-operator
-icon: https://github.com/adobe-platform/proteus-aws-operator/raw/main/helm/logo.png
+home: https://github.com/adobe/proteus-aws-operator
+icon: https://github.com/adobe/proteus-aws-operator/raw/main/helm/logo.png
 sources:
-  - https://github.com/adobe-platform/proteus-aws-operator
+  - https://github.com/adobe/proteus-aws-operator
 maintainers:
   - name: DC Infrastructure
-    url: https://github.com/orgs/adobe-platform/teams/dc-infrastructure
+    url: https://github.com/orgs/adobe/teams/dc-infrastructure
 keywords:
   - aws
   - kubernetes

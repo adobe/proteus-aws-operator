@@ -34,7 +34,7 @@ import (
 
 	"github.com/go-logr/logr"
 
-	"github.com/adobe-platform/proteus-aws-operator/apis/rds/v1alpha1"
+	"github.com/adobe/proteus-aws-operator/apis/rds/v1alpha1"
 )
 
 const DefaultReplicas int = 1

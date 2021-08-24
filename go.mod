@@ -1,4 +1,4 @@
-module github.com/adobe-platform/proteus-aws-operator
+module github.com/adobe/proteus-aws-operator
 
 go 1.16
 

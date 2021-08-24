@@ -30,8 +30,8 @@ import (
 
 	rdstypes "github.com/aws-controllers-k8s/rds-controller/apis/v1alpha1"
 
-	rdsv1alpha1 "github.com/adobe-platform/proteus-aws-operator/apis/rds/v1alpha1"
-	rdscontrollers "github.com/adobe-platform/proteus-aws-operator/controllers/rds"
+	rdsv1alpha1 "github.com/adobe/proteus-aws-operator/apis/rds/v1alpha1"
+	rdscontrollers "github.com/adobe/proteus-aws-operator/controllers/rds"
 	//+kubebuilder:scaffold:imports
 )
 
