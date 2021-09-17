@@ -90,17 +90,6 @@ func (in *DBReplicationGroupSpec) DeepCopyInto(out *DBReplicationGroupSpec) {
 		*out = new(int)
 		**out = **in
 	}
-	if in.AvailabilityZones != nil {
-		in, out := &in.AvailabilityZones, &out.AvailabilityZones
-		*out = make([]*string, len(*in))
-		for i := range *in {
-			if (*in)[i] != nil {
-				in, out := &(*in)[i], &(*out)[i]
-				*out = new(string)
-				**out = **in
-			}
-		}
-	}
 	if in.DBInstance != nil {
 		in, out := &in.DBInstance, &out.DBInstance
 		*out = new(apisv1alpha1.DBInstanceSpec)

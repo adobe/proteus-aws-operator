@@ -15,7 +15,6 @@ package rds
 
 import (
 	"context"
-	"fmt"
 	"strings"
 	"time"
 
@@ -64,10 +63,6 @@ var _ = Describe("DBReplicationGroup controller", func() {
 				},
 				Spec: v1alpha1.DBReplicationGroupSpec{
 					NumReplicas: intRef(5),
-					AvailabilityZones: []*string{
-						strRef("az1"),
-						strRef("az2"),
-					},
 					DBInstance: &rdstypes.DBInstanceSpec{
 						DBInstanceIdentifier: strRef("test-dbinstanceid"),
 						Engine:               strRef("mysql"),
@@ -93,13 +88,12 @@ var _ = Describe("DBReplicationGroup controller", func() {
 				client.InNamespace(dbReplicationGroup.Namespace),
 				client.MatchingLabels(labelsForDBReplicationGroup(dbReplicationGroup)),
 			}
-			expectedNumInstances := (len(dbReplicationGroup.Spec.AvailabilityZones) * *dbReplicationGroup.Spec.NumReplicas)
 			Eventually(func() bool {
 				err := k8sClient.List(ctx, currentInstances, listOpts...)
 				if err != nil {
 					return false
 				}
-				if len(currentInstances.Items) != expectedNumInstances {
+				if len(currentInstances.Items) != *dbReplicationGroup.Spec.NumReplicas {
 					return false
 				}
 				c <- true
@@ -135,51 +129,23 @@ var _ = Describe("DBReplicationGroup controller", func() {
 			}()).Should(Succeed())
 
 			By("Checking that the created DBInstance's have the correct names")
-			var dbInstanceID string
-			check_map := make(map[string]int)
 			Expect(func() bool {
 				for _, instance := range currentInstances.Items {
-					check_map[*instance.Spec.AvailabilityZone]++
-
-					dbInstanceID = fmt.Sprintf("%s-%s", *dbReplicationGroup.Spec.DBInstance.DBInstanceIdentifier, *instance.Spec.AvailabilityZone)
-
-					if !strings.HasPrefix(*instance.Spec.DBInstanceIdentifier, dbInstanceID) {
+					dbId := *dbReplicationGroup.Spec.DBInstance.DBInstanceIdentifier
+					if !strings.HasPrefix(*instance.Spec.DBInstanceIdentifier, dbId) {
 						return false
 					}
 				}
 				return true
 			}()).Should(BeTrue())
 
-			By("Checking that the correct number of DBInstance's were created for the correct AZs")
-			Expect(func() bool {
-				for _, az := range dbReplicationGroup.Spec.AvailabilityZones {
-					if num_instances, ok := check_map[*az]; ok {
-						if num_instances != *dbReplicationGroup.Spec.NumReplicas {
-							return false
-						}
-					} else {
-						return false
-					}
-				}
-
-				return true
-			}()).Should(BeTrue())
-
-			By("Patching DBReplicationGroup to have less instances and more AvailabilityZone's")
+			By("Patching DBReplicationGroup to have less instances")
 			patch := client.MergeFrom(dbReplicationGroup.DeepCopy())
 			dbReplicationGroup.Spec.NumReplicas = intRef(2)
-			dbReplicationGroup.Spec.AvailabilityZones = []*string{
-				strRef("az1"),
-				// az2 is explicitly removed so we can check below
-				strRef("az3"),
-				strRef("az4"),
-				strRef("az5"),
-			}
 			Expect(k8sClient.Patch(context.TODO(), dbReplicationGroup, patch)).Should(Succeed())
 
 			By("Checking that the DBReplicationGroup properly still has the expected number of DBInstances")
 			// currentInstances and listOpts are initialized above
-			expectedNumInstances = (len(dbReplicationGroup.Spec.AvailabilityZones) * *dbReplicationGroup.Spec.NumReplicas)
 			Eventually(func() bool {
 				err := k8sClient.List(ctx, currentInstances, listOpts...)
 				if err != nil {
@@ -191,7 +157,7 @@ var _ = Describe("DBReplicationGroup controller", func() {
 						instances = append(instances, instance.Spec.DBInstanceIdentifier)
 					}
 				}
-				if len(instances) != expectedNumInstances {
+				if len(instances) != *dbReplicationGroup.Spec.NumReplicas {
 					return false
 				}
 				c <- true
@@ -202,36 +168,13 @@ var _ = Describe("DBReplicationGroup controller", func() {
 			Expect(<-c).To(BeTrue())
 
 			By("Checking that the existing/new DBInstance's have the correct names")
-			// check_map and dbInstanceID are declared above
-			check_map = make(map[string]int)
 			Expect(func() bool {
 				for _, instance := range currentInstances.Items {
-					if *instance.Spec.AvailabilityZone == "az2" {
-						return false
-					}
-					check_map[*instance.Spec.AvailabilityZone]++
-
-					dbInstanceID = fmt.Sprintf("%s-%s", *dbReplicationGroup.Spec.DBInstance.DBInstanceIdentifier, *instance.Spec.AvailabilityZone)
-
-					if !strings.HasPrefix(*instance.Spec.DBInstanceIdentifier, dbInstanceID) {
+					dbId := *dbReplicationGroup.Spec.DBInstance.DBInstanceIdentifier
+					if !strings.HasPrefix(*instance.Spec.DBInstanceIdentifier, dbId) {
 						return false
 					}
 				}
-				return true
-			}()).Should(BeTrue())
-
-			By("Checking that the correct number of DBInstance's exist for the correct AZs")
-			Expect(func() bool {
-				for _, az := range dbReplicationGroup.Spec.AvailabilityZones {
-					if num_instances, ok := check_map[*az]; ok {
-						if num_instances != *dbReplicationGroup.Spec.NumReplicas {
-							return false
-						}
-					} else {
-						return false
-					}
-				}
-
 				return true
 			}()).Should(BeTrue())
 

@@ -20,12 +20,7 @@ metadata:
   name: {{.Values.DB_INSTANCE_ID}}-DBReplicationGroup
 spec:
   numReplicas: 5
-  availabilityZones:
-    - us-east-1c
-    - us-east-1d
-    - us-east-1f
   dbInstance:
-    availabilityZone: placeholder
     dbName: {{.Values.DB_NAME}}
     dbInstanceClass: db.m5.large
     dbInstanceIdentifier: {{.Values.DB_INSTANCE_ID}}-read

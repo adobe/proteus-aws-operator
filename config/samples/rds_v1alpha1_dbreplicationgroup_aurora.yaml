@@ -4,10 +4,6 @@ kind: DBCluster
 metadata:
   name: {{.Values.DB_CLUSTER_ID}}
 spec:
-  availabilityZones:
-    - us-east-1a
-    - us-east-1b
-    - us-east-1e
   dbClusterIdentifier: {{.Values.DB_CLUSTER_ID}}
   engine: aurora-mysql
   masterUsername: root
@@ -24,10 +20,6 @@ metadata:
   name: {{.Values.DB_CLUSTER_ID}}-DBReplicationGroup
 spec:
   numReplicas: 5
-  availabilityZones:
-    - us-east-1a
-    - us-east-1b
-    - us-east-1e
   dbInstance:
     dbName: {{.Values.DB_NAME}}
     dbInstanceClass: db.t3.micro
