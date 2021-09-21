@@ -14,3 +14,6 @@ images:
 - name: controller
   newName: docker-dc-micro-release.dr.corp.adobe.com/adobe-platform/proteus-aws-operator
   newTag: v0.0.6
+- name: kube-rbac-proxy
+  newName: gcr.io/kubebuilder/kube-rbac-proxy
+  newTag: v0.8.0

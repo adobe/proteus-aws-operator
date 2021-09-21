@@ -38,6 +38,8 @@ BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 # Image URL to use all building/pushing image targets
 IMG_BASE ?= docker-dc-micro-release.dr.corp.adobe.com/adobe-platform/proteus-aws-operator
 IMG ?= $(IMG_BASE):v$(VERSION)
+KUBE_RBAC_PROXY_IMG ?= gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0
+
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
 
@@ -117,6 +119,7 @@ UNAME_S=$(shell uname -s)
 helm-build: kustomize k8split ## Build helm chart
 	mkdir -p build
 	$(shell cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG))
+	$(shell cd config/manager && $(KUSTOMIZE) edit set image kube-rbac-proxy=$(KUBE_RBAC_PROXY_IMG))
 	$(KUSTOMIZE) build config/default > build/kustomize.yaml
 ifeq ($(UNAME_S),Darwin)
 	sed -i '.bak' 's/proteus-aws-operator-system/ack-system/g' build/kustomize.yaml
@@ -134,6 +137,7 @@ ifeq ($(UNAME_S),Darwin)
 	sed -i '.bak' 's/appVersion:.*/appVersion: $(VERSION)/g' helm/Chart.yaml
 	rm -Rf helm/Chart.yaml.bak
 	sed -i '.bak' 's|$(IMG)|{{ .Values.image.repository }}:{{ .Values.image.tag }}|g' helm/templates/deployment-proteus-aws-operator-controller-manager.yaml
+	sed -i '.bak' 's|$(KUBE_RBAC_PROXY_IMG)|{{ .Values.image.kubeRBACProxy }}|g' helm/templates/deployment-proteus-aws-operator-controller-manager.yaml
 	rm -Rf helm/templates/deployment-proteus-aws-operator-controller-manager.yaml.bak
 else
 	sed -i 's|repository:.*|repository: $(IMG_BASE)|g' helm/values.yaml
@@ -141,6 +145,7 @@ else
 	sed -i 's/version:.*/version: $(VERSION)/g' helm/Chart.yaml
 	sed -i 's/appVersion:.*/appVersion: $(VERSION)/g' helm/Chart.yaml
 	sed -i 's|$(IMG)|{{ .Values.image.repository }}:{{ .Values.image.tag }}|g' helm/templates/deployment-proteus-aws-operator-controller-manager.yaml
+	sed -i 's|$(KUBE_RBAC_PROXY_IMG)|{{ .Values.image.kubeRBACProxy }}|g' helm/templates/deployment-proteus-aws-operator-controller-manager.yaml
 endif
 	mv helm/templates/customresourcedefinition* helm/crds/
 	rm -Rf helm/templates/namespace-ack-system.yaml

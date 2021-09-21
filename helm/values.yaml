@@ -5,6 +5,7 @@
 image:
   repository: docker-dc-micro-release.dr.corp.adobe.com/adobe-platform/proteus-aws-operator
   tag: v0.0.6
+  kubeRBACProxy: gcr.io/kubebuilder/kube-rbac-proxy:v0.8.0
 
 nameOverride: ""
 fullnameOverride: ""
