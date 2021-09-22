@@ -30,11 +30,6 @@ spec:
                     spec:
                         description: DBReplicationGroupSpec defines the desired state of DBReplicationGroup
                         properties:
-                            availabilityZones:
-                                description: "AvailabilityZones is a list of AvailabilityZone names \n Note: for Aurora, this must match the DBCluster.AvailabilityZones specification"
-                                items:
-                                    type: string
-                                type: array
                             dbInstance:
                                 description: "DBInstance is the base DBInstance specification. All replica instances are cloned from this specification. \n Note: the DBInstance.AvailabilityZone specification will be overridden by the main AvailabilityZone specification above in each replica. Note: the DBInstance.MultiAZ specification will be explicitly overridden to false \n For more information see the ACK RDS Controller DBInstance API"
                                 properties:
@@ -233,7 +228,6 @@ spec:
                                 description: NumReplicas is the number of replicas to create
                                 type: integer
                         required:
-                            - availabilityZones
                             - dbInstance
                             - numReplicas
                         type: object

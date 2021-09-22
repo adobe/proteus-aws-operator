@@ -25,13 +25,6 @@ type DBReplicationGroupSpec struct {
 	// +kubebuilder:validation:Required
 	NumReplicas *int `json:"numReplicas"`
 
-	// AvailabilityZones is a list of AvailabilityZone names
-	//
-	// Note: for Aurora, this must match the DBCluster.AvailabilityZones specification
-	//
-	// +kubebuilder:validation:Required
-	AvailabilityZones []*string `json:"availabilityZones"`
-
 	// DBInstance is the base DBInstance specification. All replica instances are cloned from this specification.
 	//
 	// Note: the DBInstance.AvailabilityZone specification will be overridden by the main AvailabilityZone specification above in each replica.

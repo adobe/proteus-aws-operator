@@ -3,7 +3,7 @@
 # To re-generate a bundle for another specific version without changing the standard setup, you can:
 # - use the VERSION as arg of the bundle target (e.g make bundle VERSION=0.0.2)
 # - use environment variables to overwrite this value (e.g export VERSION=0.0.2)
-VERSION ?= 0.0.6
+VERSION ?= 0.0.7
 
 # CHANNELS define the bundle channels used in the bundle.
 # Add a new line here if you would like to change its default config. (E.g CHANNELS = "candidate,fast,stable")
@@ -109,7 +109,7 @@ run: manifests generate fmt vet ## Run a controller from your host.
 docker-build: test ## Build docker image with the manager.
 	docker build -t ${IMG} .
 
-docker-push: ## Push docker image with the manager.
+docker-push: docker-build ## Push docker image with the manager.
 	docker push ${IMG}
 
 UNAME_S=$(shell uname -s)

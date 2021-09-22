@@ -233,52 +233,42 @@ func (r *DBReplicationGroupReconciler) requestedInstanceActions(
 	dbReplicationGroup *v1alpha1.DBReplicationGroup,
 	instanceMap map[string]rdstypes.DBInstance,
 ) ([]DBInstanceAction, []*string) {
-	if dbReplicationGroup.Spec.DBInstance.MultiAZ != nil && *dbReplicationGroup.Spec.DBInstance.MultiAZ {
-		log.Info("Warning: MultiAZ should not be set to true. Explicitly setting MultiAZ to false.")
-		dbReplicationGroup.Spec.DBInstance.MultiAZ = func() *bool { b := false; return &b }()
-	}
-
 	log.V(1).Info("Creating Instance Actions")
 
 	var instanceActions []DBInstanceAction
 	var instanceIDs []*string
 	var instance *rdstypes.DBInstance
 	var dbInstanceID string
-	var az_log logr.Logger
 
-	for _, az := range dbReplicationGroup.Spec.AvailabilityZones {
-		az_log = log.WithValues("az", *az)
+	log.V(1).Info("Creating Instances")
+	for i := 0; i < *dbReplicationGroup.Spec.NumReplicas; i++ {
+		dbInstanceID = fmt.Sprintf("%s-%d", *dbReplicationGroup.Spec.DBInstance.DBInstanceIdentifier, i)
 
-		az_log.V(1).Info("Creating AZ Instances")
-		for i := 0; i < *dbReplicationGroup.Spec.NumReplicas; i++ {
-			dbInstanceID = fmt.Sprintf("%s-%s-%d", *dbReplicationGroup.Spec.DBInstance.DBInstanceIdentifier, *az, i)
+		instance = r.dbInstance(log, ctx, dbReplicationGroup, dbInstanceID)
 
-			instance = r.dbInstance(log, ctx, dbReplicationGroup, dbInstanceID, az)
-
-			// If the instance is in the map, update it if needed
-			if currentInstance, ok := instanceMap[dbInstanceID]; ok {
-				if !reflect.DeepEqual(instance.Spec, currentInstance.Spec) {
-					az_log.V(1).Info("Instance will be updated", "instance", instance)
-					instanceActions = append(
-						instanceActions,
-						DBInstanceAction{
-							Action:          ActionUpdate,
-							Instance:        instance,
-							CurrentInstance: &currentInstance,
-						},
-					)
-				}
-				// else; no change for the instance, so do nothing
-
-				instanceIDs = append(instanceIDs, instance.Spec.DBInstanceIdentifier)
-
-				// Remove the instance from the map so we don't delete it below
-				delete(instanceMap, dbInstanceID)
-			} else {
-				az_log.V(1).Info("Instance will be created", "instance", instance)
-				instanceActions = append(instanceActions, DBInstanceAction{Action: ActionCreate, Instance: instance})
-				instanceIDs = append(instanceIDs, instance.Spec.DBInstanceIdentifier)
+		// If the instance is in the map, update it if needed
+		if currentInstance, ok := instanceMap[dbInstanceID]; ok {
+			if !reflect.DeepEqual(instance.Spec, currentInstance.Spec) {
+				log.V(1).Info("Instance will be updated", "instance", instance)
+				instanceActions = append(
+					instanceActions,
+					DBInstanceAction{
+						Action:          ActionUpdate,
+						Instance:        instance,
+						CurrentInstance: &currentInstance,
+					},
+				)
 			}
+			// else; no change for the instance, so do nothing
+
+			instanceIDs = append(instanceIDs, instance.Spec.DBInstanceIdentifier)
+
+			// Remove the instance from the map so we don't delete it below
+			delete(instanceMap, dbInstanceID)
+		} else {
+			log.V(1).Info("Instance will be created", "instance", instance)
+			instanceActions = append(instanceActions, DBInstanceAction{Action: ActionCreate, Instance: instance})
+			instanceIDs = append(instanceIDs, instance.Spec.DBInstanceIdentifier)
 		}
 	}
 
@@ -304,7 +294,6 @@ func (r *DBReplicationGroupReconciler) dbInstance(
 	ctx context.Context,
 	dbReplicationGroup *v1alpha1.DBReplicationGroup,
 	dbInstanceID string,
-	az *string,
 ) *rdstypes.DBInstance {
 	log.V(1).Info("Creating new instance", "DBInstanceIdentifier", dbInstanceID)
 
@@ -312,7 +301,6 @@ func (r *DBReplicationGroupReconciler) dbInstance(
 
 	copier.Copy(&spec, &dbReplicationGroup.Spec.DBInstance)
 
-	spec.AvailabilityZone = az
 	spec.DBInstanceIdentifier = &dbInstanceID
 
 	instance := &rdstypes.DBInstance{
