@@ -17,6 +17,14 @@ rules:
 - apiGroups:
   - rds.services.k8s.aws
   resources:
+  - dbclusters
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - rds.services.k8s.aws
+  resources:
   - dbinstances
   verbs:
   - create
