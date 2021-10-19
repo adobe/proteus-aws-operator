@@ -19,9 +19,9 @@ resourceTags:
   - services.k8s.aws.adobe.io/created=%UTCNOW%
   - services.k8s.aws.adobe.io/namespace=%KUBERNETES_NAMESPACE%
 
-serviceAccount:
-  # Specifies whether a service account should be created
-  create: true
-  # The name of the service account to use.
-  name: proteus-aws-operator
-  annotations: {}
+# Used for DBUser access to Databases
+#
+# securityGroupIds:
+#   - sg-12345deadbeaf
+#
+securityGroupIds: []
