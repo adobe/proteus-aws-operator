@@ -50,12 +50,18 @@ type DB struct {
 	Engine rdsv1alpha1.Engine
 }
 
-var testDB *DB = nil
+var testDB *sql.DB = nil
 
 // DBUserReconciler reconciles a DBUser object
 type DBUserReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+}
+
+func createLogError(log logr.Logger, errMsg string, keysAndValues ...interface{}) error {
+	err := errors.New(errMsg)
+	log.Error(err, errMsg, keysAndValues...)
+	return err
 }
 
 //+kubebuilder:rbac:groups=rds.services.k8s.aws.adobe.io,resources=dbusers,verbs=get;list;watch;create;update;patch;delete
@@ -94,28 +100,24 @@ func (r *DBUserReconciler) Reconcile(
 	}
 
 	// Get the DB instance
-	var db *DB
+	log.V(1).Info("Getting DB object")
 
-	if testDB == nil {
-		var err error
-
-		db, err = r.getDB(log, ctx, dbUser)
-		if err != nil {
-			return ctrl.Result{}, err
-		}
-
-		// Invalid user input, don't keep trying to reconcile
-		if db == nil {
-			return ctrl.Result{}, nil
-		}
-
-		defer db.DB.Close()
-	} else {
-		db = testDB
+	db, err := r.getDB(log, ctx, dbUser)
+	if err != nil {
+		return ctrl.Result{}, err
 	}
+
+	// Invalid user input, don't keep trying to reconcile
+	if db == nil {
+		return ctrl.Result{}, nil
+	}
+
+	defer db.DB.Close()
 
 	// Should we delete this DBUser?
 	if dbUser.GetDeletionTimestamp() != nil {
+		log.V(1).Info("Deleting DBUser")
+
 		if ctrlutil.ContainsFinalizer(dbUser, dbUserFinalizer) {
 			err := r.finalizeDBUser(log, ctx, dbUser, db)
 			if err != nil {
@@ -130,38 +132,35 @@ func (r *DBUserReconciler) Reconcile(
 			}
 		}
 		return ctrl.Result{}, nil
-	}
+	} else {
+		// Initialize user (create/grant permissions)
+		log.V(1).Info("Adding DBUser")
+		r.initializeDBUser(log, ctx, dbUser, db)
 
-	if !ctrlutil.ContainsFinalizer(dbUser, dbUserFinalizer) {
-		ctrlutil.AddFinalizer(dbUser, dbUserFinalizer)
-		err = r.Update(ctx, dbUser)
-		if err != nil {
-			log.Error(err, "Failed to add finalizer to DBUser")
-			return ctrl.Result{}, err
-		}
-	}
-
-	// Initialize user (create/grant permissions)
-	r.initializeDBUser(log, ctx, dbUser, db)
-
-	// Add finalizer for this DBUser
-	if !ctrlutil.ContainsFinalizer(dbUser, dbUserFinalizer) {
-		ctrlutil.AddFinalizer(dbUser, dbUserFinalizer)
-		err = r.Update(ctx, dbUser)
-		if err != nil {
-			return ctrl.Result{}, err
+		// Add finalizer for this DBUser
+		if !ctrlutil.ContainsFinalizer(dbUser, dbUserFinalizer) {
+			ctrlutil.AddFinalizer(dbUser, dbUserFinalizer)
+			err = r.Update(ctx, dbUser)
+			if err != nil {
+				log.Error(err, "Failed to add finalizer to DBUser")
+				return ctrl.Result{}, err
+			}
 		}
 	}
 
 	return ctrl.Result{}, nil
 }
 
-// getDB will return an opened  database/sql database connection given the Kubernetes user specifications (Engine/MasterUsername/MasterUserPassword)
+// getDB will return an opened database/sql database connection given the Kubernetes user specifications (Engine/MasterUsername/MasterUserPassword)
 func (r *DBUserReconciler) getDB(
 	log logr.Logger,
 	ctx context.Context,
 	dbUser *rdsv1alpha1.DBUser,
 ) (*DB, error) {
+	var db *sql.DB
+
+	var err error
+
 	var driver string
 
 	var dsn string
@@ -175,33 +174,33 @@ func (r *DBUserReconciler) getDB(
 	var password string
 
 	if dbUser.Spec.DBInstanceIdentifier != nil {
+		log.V(1).Info("Retrieving DB information from DBInstance")
+
 		dbInstance := &rdstypes.DBInstance{}
-		err := r.Get(ctx, types.NamespacedName{Name: *dbUser.Spec.DBInstanceIdentifier, Namespace: dbUser.Namespace}, dbInstance)
+		err = r.Get(ctx, types.NamespacedName{Name: *dbUser.Spec.DBInstanceIdentifier, Namespace: dbUser.Namespace}, dbInstance)
 		if err != nil {
 			log.Error(err, "Failed to find DBInstance", "DBInstanceIdentifier", *dbUser.Spec.DBInstanceIdentifier)
 			return nil, err
 		}
 
+		instanceLog := log.WithValues("DBInstance", *dbInstance.Spec.DBInstanceIdentifier)
+
+		instanceLog.V(1).Info("Validating DBInstance")
+
 		if dbInstance.Spec.Engine == nil {
-			errMsg := "DBInstance has no engine specification"
-			err := errors.New(errMsg)
-			log.Error(err, errMsg, "DBInstance", *dbInstance.Spec.DBInstanceIdentifier)
+			createLogError(instanceLog, "DBInstance has no engine specification")
 			// Return err=nil here so we don't keep trying to reconcile
 			return nil, nil
 		}
 
 		if dbInstance.Spec.MasterUsername == nil {
-			errMsg := "DBInstance has no MasterUsername specification"
-			err := errors.New(errMsg)
-			log.Error(err, errMsg, "DBInstance", *dbInstance.Spec.DBInstanceIdentifier)
+			createLogError(instanceLog, "DBInstance has no MasterUsername specification")
 			// Return err=nil here so we don't keep trying to reconcile
 			return nil, nil
 		}
 
 		if dbInstance.Spec.MasterUserPassword == nil {
-			errMsg := "DBInstance has no MasterUserPassword specification"
-			err := errors.New(errMsg)
-			log.Error(err, errMsg, "DBInstance", *dbInstance.Spec.DBInstanceIdentifier)
+			createLogError(instanceLog, "DBInstance has no MasterUserPassword specification")
 			// Return err=nil here so we don't keep trying to reconcile
 			return nil, nil
 		}
@@ -210,47 +209,42 @@ func (r *DBUserReconciler) getDB(
 
 		password, err = r.SecretValueFromReference(ctx, dbInstance.Spec.MasterUserPassword)
 		if err != nil {
-			log.Error(err, "Failed to retrieve MasterUserPassword secret", "secret", *dbInstance.Spec.MasterUserPassword)
+			instanceLog.Error(err, "Failed to retrieve MasterUserPassword secret", "secret", *dbInstance.Spec.MasterUserPassword)
 			return nil, err
 		}
 
 		if dbInstance.Status.Endpoint == nil || dbInstance.Status.Endpoint.Address == nil || dbInstance.Status.Endpoint.Port == nil {
-			errMsg := "DBInstance has no active Endpoint"
-			err := errors.New(errMsg)
-			log.Error(err, errMsg, "DBInstance", *dbInstance.Spec.DBInstanceIdentifier)
-			return nil, err
+			return nil, createLogError(instanceLog, "DBInstance has no active Endpoint")
 		}
 
 		username = *dbInstance.Spec.MasterUsername
 		endpoint = fmt.Sprintf("%s:%d", *dbInstance.Status.Endpoint.Address, *dbInstance.Status.Endpoint.Port)
 	} else if dbUser.Spec.DBClusterIdentifier != nil {
+		log.V(1).Info("Retrieving DB information from DBCluster")
 		dbCluster := &rdstypes.DBCluster{}
-		err := r.Get(ctx, types.NamespacedName{Name: *dbUser.Spec.DBClusterIdentifier, Namespace: dbUser.Namespace}, dbCluster)
+		err = r.Get(ctx, types.NamespacedName{Name: *dbUser.Spec.DBClusterIdentifier, Namespace: dbUser.Namespace}, dbCluster)
 		if err != nil {
 			log.Error(err, "Failed to find DBCluster", "DBClusterIdentifier", *dbUser.Spec.DBClusterIdentifier)
 			return nil, err
 		}
 
+		clusterLog := log.WithValues("DBCluster", *dbCluster.Spec.DBClusterIdentifier)
+
+		clusterLog.V(1).Info("Validating DBCluster")
 		if dbCluster.Spec.Engine == nil {
-			errMsg := "DBCluster has no engine specification"
-			err := errors.New(errMsg)
-			log.Error(err, errMsg, "DBCluster", *dbCluster.Spec.DBClusterIdentifier)
+			createLogError(clusterLog, "DBCluster has no engine specification")
 			// Return err=nil here so we don't keep trying to reconcile
 			return nil, nil
 		}
 
 		if dbCluster.Spec.MasterUsername == nil {
-			errMsg := "DBCluster has no MasterUsername specification"
-			err := errors.New(errMsg)
-			log.Error(err, errMsg, "DBCluster", *dbCluster.Spec.DBClusterIdentifier)
+			createLogError(clusterLog, "DBCluster has no MasterUsername specification")
 			// Return err=nil here so we don't keep trying to reconcile
 			return nil, nil
 		}
 
 		if dbCluster.Spec.MasterUserPassword == nil {
-			errMsg := "DBCluster has no MasterUserPassword specification"
-			err := errors.New(errMsg)
-			log.Error(err, errMsg, "DBCluster", *dbCluster.Spec.DBClusterIdentifier)
+			createLogError(clusterLog, "DBCluster has no MasterUserPassword specification")
 			// Return err=nil here so we don't keep trying to reconcile
 			return nil, nil
 		}
@@ -259,23 +253,18 @@ func (r *DBUserReconciler) getDB(
 
 		password, err = r.SecretValueFromReference(ctx, dbCluster.Spec.MasterUserPassword)
 		if err != nil {
-			log.Error(err, "Failed to retrieve MasterUserPassword secret", "secret", *dbCluster.Spec.MasterUserPassword)
+			clusterLog.Error(err, "Failed to retrieve MasterUserPassword secret", "secret", *dbCluster.Spec.MasterUserPassword)
 			return nil, err
 		}
 
 		if dbCluster.Status.Endpoint == nil {
-			errMsg := "DBCluster has no active Endpoint"
-			err := errors.New(errMsg)
-			log.Error(err, errMsg, "DBCluster", *dbCluster.Spec.DBClusterIdentifier)
-			return nil, err
+			return nil, createLogError(clusterLog, "DBCluster has no active Endpoint")
 		}
 
 		username = *dbCluster.Spec.MasterUsername
 		endpoint = *dbCluster.Status.Endpoint
 	} else {
-		errMsg := "Must specify DBInstanceIdentifier or DBClusterIdentifier"
-		err := errors.New(errMsg)
-		log.Error(err, errMsg)
+		createLogError(log, "Must specify DBInstanceIdentifier or DBClusterIdentifier")
 		// Return err=nil here so we don't keep trying to reconcile
 		return nil, nil
 	}
@@ -289,20 +278,21 @@ func (r *DBUserReconciler) getDB(
 		engineType = rdsv1alpha1.Postgres
 		dsn = fmt.Sprintf("postgres://%s:%s@%s/", username, password, endpoint)
 	} else {
-		errMsg := "Invalid database engine type. Must be: mariadb, mysql, postgres, aurora, aurora-mysql, or aurora-postgresql"
-		err := errors.New(errMsg)
-		log.Error(err, errMsg, "engine", engine)
+		createLogError(log, "Invalid database engine type. Must be: mariadb, mysql, postgres, aurora, aurora-mysql, or aurora-postgresql")
 		// Return err=nil here so we don't keep trying to reconcile
 		return nil, nil
 	}
 
-	db, err := sql.Open(driver, dsn)
+	log.V(1).Info("Connecting to database", "driver", driver, "dsn", dsn)
+	if testDB == nil {
+		db, err = sql.Open(driver, dsn)
+	} else {
+		db = testDB
+		err = nil
+	}
 
 	if err != nil {
-		errMsg := "Failed to create DB instance"
-		err := errors.New(errMsg)
-		log.Error(err, errMsg)
-		// Return err=nil here so we don't keep trying to reconcile
+		log.Error(err, "Failed to create sql.DB instance", "driver", driver, "dsn", dsn)
 		return nil, err
 	}
 
@@ -321,6 +311,8 @@ func (r *DBUserReconciler) initializeDBUser(
 
 	userLog := log.WithValues("user", *dbUser.Spec.Username)
 
+	userLog.V(1).Info("Creating user")
+
 	// Create User
 	if dbUser.Spec.Password != nil {
 		password, err := r.SecretValueFromReference(ctx, dbUser.Spec.Password)
@@ -334,27 +326,18 @@ func (r *DBUserReconciler) initializeDBUser(
 		} else if db.Engine == rdsv1alpha1.Postgres {
 			result, err = db.DB.ExecContext(ctx, "CREATE USER ? WITH PASSWORD ?;", *dbUser.Spec.Username, password)
 		} else {
-			errMsg := "Unknown engine type"
-			err := errors.New(errMsg)
-			log.Error(err, errMsg, "engine", db.Engine)
-			return err
+			return createLogError(log, "Unknown engine type", "engine", db.Engine)
 		}
-	} else if dbUser.Spec.UseIAMAuthentication != nil {
+	} else if dbUser.Spec.UseIAMAuthentication != nil && *dbUser.Spec.UseIAMAuthentication {
 		if db.Engine == rdsv1alpha1.MySQL {
 			result, err = db.DB.ExecContext(ctx, "CREATE USER ? IDENTIFIED WITH AWSAuthenticationPlugin AS 'RDS';", *dbUser.Spec.Username)
 		} else if db.Engine == rdsv1alpha1.Postgres {
 			result, err = db.DB.ExecContext(ctx, "CREATE USER ? WITH LOGIN;", *dbUser.Spec.Username)
 		} else {
-			errMsg := "Unknown engine type"
-			err := errors.New(errMsg)
-			log.Error(err, errMsg, "engine", db.Engine)
-			return err
+			return createLogError(log, "Unknown engine type", "engine", db.Engine)
 		}
 	} else {
-		errMsg := "Must specify Password or UseIAMAuthentication=true"
-		err := errors.New(errMsg)
-		log.Error(err, errMsg)
-		return err
+		return createLogError(log, "Must specify Password or UseIAMAuthentication=true")
 	}
 
 	if err != nil {
@@ -376,9 +359,11 @@ func (r *DBUserReconciler) initializeDBUser(
 		rows = 0
 	}
 
+	userLog.V(1).Info("Applying GRANT statement")
+
 	// IAM support for Postgres
-	if rows != 0 && dbUser.Spec.UseIAMAuthentication != nil && db.Engine == rdsv1alpha1.Postgres {
-		result, err = db.DB.ExecContext(ctx, "GRANT rds_iam TO ?;", *dbUser.Spec.Username)
+	if db.Engine == rdsv1alpha1.Postgres && rows != 0 && dbUser.Spec.UseIAMAuthentication != nil && *dbUser.Spec.UseIAMAuthentication {
+		_, err = db.DB.ExecContext(ctx, "GRANT rds_iam TO ?;", *dbUser.Spec.Username)
 
 		if err != nil {
 			userLog.Error(err, "Failed to grant IAM permissions to user")
@@ -405,10 +390,7 @@ func (r *DBUserReconciler) initializeDBUser(
 		}
 
 		if rows == 0 {
-			errMsg := "GRANT statement didn't apply properly"
-			err := errors.New(errMsg)
-			log.Error(err, errMsg, "user", *dbUser.Spec.Username)
-			return err
+			return createLogError(userLog, "GRANT statement didn't apply properly")
 		}
 	}
 
