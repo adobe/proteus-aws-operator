@@ -177,7 +177,7 @@ var _ = Describe("DBUser controller", func() {
 			db, mock, err := sqlmock.New()
 			Expect(err).Should(Succeed())
 
-			testDB = db
+			testDB[DBUserName] = db
 
 			mock.ExpectExec("CREATE USER.+IDENTIFIED BY").WithArgs(DBUserUsername, PasswordSecretValue).WillReturnResult(sqlmock.NewResult(1, 1))
 			mock.ExpectExec(ExpectedGrantStatementSQL).WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -232,7 +232,7 @@ var _ = Describe("DBUser controller", func() {
 			db, mock, err = sqlmock.New()
 			Expect(err).Should(Succeed())
 
-			testDB = db
+			testDB[DBUserName] = db
 
 			mock.ExpectExec("DROP USER").WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
 
@@ -369,7 +369,7 @@ var _ = Describe("DBUser controller", func() {
 			db, mock, err := sqlmock.New()
 			Expect(err).Should(Succeed())
 
-			testDB = db
+			testDB[DBUserName] = db
 
 			mock.ExpectExec("CREATE USER.+IDENTIFIED WITH AWSAuthenticationPlugin.+").WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
 			mock.ExpectExec(ExpectedGrantStatementSQL).WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -525,7 +525,7 @@ var _ = Describe("DBUser controller", func() {
 			db, mock, err := sqlmock.New()
 			Expect(err).Should(Succeed())
 
-			testDB = db
+			testDB[DBUserName] = db
 
 			mock.ExpectExec("CREATE USER.+WITH PASSWORD").WithArgs(DBUserUsername, PasswordSecretValue).WillReturnResult(sqlmock.NewResult(1, 1))
 			mock.ExpectExec(ExpectedGrantStatementSQL).WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -679,7 +679,7 @@ var _ = Describe("DBUser controller", func() {
 			db, mock, err := sqlmock.New()
 			Expect(err).Should(Succeed())
 
-			testDB = db
+			testDB[DBUserName] = db
 
 			mock.ExpectExec("CREATE USER.+WITH LOGIN.+").WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
 			mock.ExpectExec("GRANT rds_iam TO").WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -836,7 +836,7 @@ var _ = Describe("DBUser controller", func() {
 			db, mock, err := sqlmock.New()
 			Expect(err).Should(Succeed())
 
-			testDB = db
+			testDB[DBUserName] = db
 
 			mock.ExpectExec("CREATE USER.+IDENTIFIED BY").WithArgs(DBUserUsername, PasswordSecretValue).WillReturnResult(sqlmock.NewResult(1, 1))
 			mock.ExpectExec(ExpectedGrantStatementSQL).WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -985,7 +985,7 @@ var _ = Describe("DBUser controller", func() {
 			db, mock, err := sqlmock.New()
 			Expect(err).Should(Succeed())
 
-			testDB = db
+			testDB[DBUserName] = db
 
 			mock.ExpectExec("CREATE USER.+IDENTIFIED WITH AWSAuthenticationPlugin.+").WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
 			mock.ExpectExec(ExpectedGrantStatementSQL).WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -1136,7 +1136,7 @@ var _ = Describe("DBUser controller", func() {
 			db, mock, err := sqlmock.New()
 			Expect(err).Should(Succeed())
 
-			testDB = db
+			testDB[DBUserName] = db
 
 			mock.ExpectExec("CREATE USER.+WITH PASSWORD").WithArgs(DBUserUsername, PasswordSecretValue).WillReturnResult(sqlmock.NewResult(1, 1))
 			mock.ExpectExec(ExpectedGrantStatementSQL).WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
@@ -1285,7 +1285,7 @@ var _ = Describe("DBUser controller", func() {
 			db, mock, err := sqlmock.New()
 			Expect(err).Should(Succeed())
 
-			testDB = db
+			testDB[DBUserName] = db
 
 			mock.ExpectExec("CREATE USER.+WITH LOGIN.+").WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
 			mock.ExpectExec("GRANT rds_iam TO").WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))

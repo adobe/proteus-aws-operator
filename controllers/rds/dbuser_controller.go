@@ -50,7 +50,7 @@ type DB struct {
 	Engine rdsv1alpha1.Engine
 }
 
-var testDB *sql.DB = nil
+var testDB map[string]*sql.DB = make(map[string]*sql.DB)
 
 // DBUserReconciler reconciles a DBUser object
 type DBUserReconciler struct {
@@ -119,7 +119,7 @@ func (r *DBUserReconciler) Reconcile(
 		log.V(1).Info("Deleting DBUser")
 
 		if ctrlutil.ContainsFinalizer(dbUser, dbUserFinalizer) {
-			err := r.finalizeDBUser(log, ctx, dbUser, db)
+			err = r.finalizeDBUser(log, ctx, dbUser, db)
 			if err != nil {
 				return ctrl.Result{}, err
 			}
@@ -135,7 +135,12 @@ func (r *DBUserReconciler) Reconcile(
 	} else {
 		// Initialize user (create/grant permissions)
 		log.V(1).Info("Adding DBUser")
-		r.initializeDBUser(log, ctx, dbUser, db)
+		err = r.initializeDBUser(log, ctx, dbUser, db)
+
+		if err != nil {
+			log.Error(err, "Failed to add DBUser")
+			return ctrl.Result{}, err
+		}
 
 		// Add finalizer for this DBUser
 		if !ctrlutil.ContainsFinalizer(dbUser, dbUserFinalizer) {
@@ -170,8 +175,14 @@ func (r *DBUserReconciler) getDB(
 
 	var endpoint string
 
+	var port *int64
+
 	var username string
 	var password string
+
+	int64Ref := func(i int64) *int64 {
+		return &i
+	}
 
 	if dbUser.Spec.DBInstanceIdentifier != nil {
 		log.V(1).Info("Retrieving DB information from DBInstance")
@@ -205,20 +216,20 @@ func (r *DBUserReconciler) getDB(
 			return nil, nil
 		}
 
+		if dbInstance.Status.Endpoint == nil || dbInstance.Status.Endpoint.Address == nil || dbInstance.Status.Endpoint.Port == nil {
+			return nil, createLogError(instanceLog, "DBInstance has no active Endpoint")
+		}
+
 		engine = *dbInstance.Spec.Engine
+		username = *dbInstance.Spec.MasterUsername
+		endpoint = *dbInstance.Status.Endpoint.Address
+		port = dbInstance.Status.Endpoint.Port
 
 		password, err = r.SecretValueFromReference(ctx, dbInstance.Spec.MasterUserPassword)
 		if err != nil {
 			instanceLog.Error(err, "Failed to retrieve MasterUserPassword secret", "secret", *dbInstance.Spec.MasterUserPassword)
 			return nil, err
 		}
-
-		if dbInstance.Status.Endpoint == nil || dbInstance.Status.Endpoint.Address == nil || dbInstance.Status.Endpoint.Port == nil {
-			return nil, createLogError(instanceLog, "DBInstance has no active Endpoint")
-		}
-
-		username = *dbInstance.Spec.MasterUsername
-		endpoint = fmt.Sprintf("%s:%d", *dbInstance.Status.Endpoint.Address, *dbInstance.Status.Endpoint.Port)
 	} else if dbUser.Spec.DBClusterIdentifier != nil {
 		log.V(1).Info("Retrieving DB information from DBCluster")
 		dbCluster := &rdstypes.DBCluster{}
@@ -230,7 +241,6 @@ func (r *DBUserReconciler) getDB(
 
 		clusterLog := log.WithValues("DBCluster", *dbCluster.Spec.DBClusterIdentifier)
 
-		clusterLog.V(1).Info("Validating DBCluster")
 		if dbCluster.Spec.Engine == nil {
 			createLogError(clusterLog, "DBCluster has no engine specification")
 			// Return err=nil here so we don't keep trying to reconcile
@@ -243,6 +253,10 @@ func (r *DBUserReconciler) getDB(
 			return nil, nil
 		}
 
+		if dbCluster.Status.Endpoint == nil {
+			return nil, createLogError(clusterLog, "DBCluster has no active Endpoint")
+		}
+
 		if dbCluster.Spec.MasterUserPassword == nil {
 			createLogError(clusterLog, "DBCluster has no MasterUserPassword specification")
 			// Return err=nil here so we don't keep trying to reconcile
@@ -250,19 +264,15 @@ func (r *DBUserReconciler) getDB(
 		}
 
 		engine = *dbCluster.Spec.Engine
+		username = *dbCluster.Spec.MasterUsername
+		endpoint = *dbCluster.Status.Endpoint
+		port = dbCluster.Spec.Port
 
 		password, err = r.SecretValueFromReference(ctx, dbCluster.Spec.MasterUserPassword)
 		if err != nil {
 			clusterLog.Error(err, "Failed to retrieve MasterUserPassword secret", "secret", *dbCluster.Spec.MasterUserPassword)
 			return nil, err
 		}
-
-		if dbCluster.Status.Endpoint == nil {
-			return nil, createLogError(clusterLog, "DBCluster has no active Endpoint")
-		}
-
-		username = *dbCluster.Spec.MasterUsername
-		endpoint = *dbCluster.Status.Endpoint
 	} else {
 		createLogError(log, "Must specify DBInstanceIdentifier or DBClusterIdentifier")
 		// Return err=nil here so we don't keep trying to reconcile
@@ -272,11 +282,21 @@ func (r *DBUserReconciler) getDB(
 	if engine == "mysql" || engine == "mariadb" || engine == "aurora" || engine == "aurora-mysql" {
 		driver = "mysql"
 		engineType = rdsv1alpha1.MySQL
-		dsn = fmt.Sprintf("%s:%s@tcp(%s)/", username, password, endpoint)
+
+		if port == nil {
+			port = int64Ref(3306)
+		}
+
+		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/", username, password, endpoint, *port)
 	} else if engine == "postgres" || engine == "aurora-postgresql" {
 		driver = "pgx"
 		engineType = rdsv1alpha1.Postgres
-		dsn = fmt.Sprintf("postgres://%s:%s@%s/", username, password, endpoint)
+
+		if port == nil {
+			port = int64Ref(5432)
+		}
+
+		dsn = fmt.Sprintf("postgres://%s:%s@%s:%d/", username, password, endpoint, *port)
 	} else {
 		createLogError(log, "Invalid database engine type. Must be: mariadb, mysql, postgres, aurora, aurora-mysql, or aurora-postgresql")
 		// Return err=nil here so we don't keep trying to reconcile
@@ -284,11 +304,12 @@ func (r *DBUserReconciler) getDB(
 	}
 
 	log.V(1).Info("Connecting to database", "driver", driver, "dsn", dsn)
-	if testDB == nil {
-		db, err = sql.Open(driver, dsn)
-	} else {
-		db = testDB
+	if currentTestDB, ok := testDB[dbUser.Name]; ok {
+		// Database mocking for unit testing
+		db = currentTestDB
 		err = nil
+	} else {
+		db, err = sql.Open(driver, dsn)
 	}
 
 	if err != nil {
@@ -422,6 +443,7 @@ func (r *DBUserReconciler) SecretValueFromReference(
 	ctx context.Context,
 	ref *ackv1alpha1.SecretKeyReference,
 ) (string, error) {
+
 	if ref == nil {
 		return "", nil
 	}
@@ -435,9 +457,8 @@ func (r *DBUserReconciler) SecretValueFromReference(
 		Namespace: namespace,
 		Name:      ref.Name,
 	}
-	secret := &corev1.Secret{}
-	err := r.Get(ctx, nsn, secret)
-	if err != nil {
+	var secret corev1.Secret
+	if err := r.Get(ctx, nsn, &secret); err != nil {
 		return "", ackerr.SecretNotFound
 	}
 
