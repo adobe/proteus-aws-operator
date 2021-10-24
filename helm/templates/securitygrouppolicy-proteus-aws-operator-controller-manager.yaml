@@ -7,7 +7,7 @@ metadata:
 spec:
   serviceAccountSelector:
     matchLabels:
-      controller: proteus-aws-operator 
+      controller: proteus-aws-operator
   securityGroups:
     groupIds:
       {{- range $securityGroupId := .Values.securityGroupIds }}
