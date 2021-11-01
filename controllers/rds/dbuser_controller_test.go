@@ -179,10 +179,11 @@ var _ = Describe("DBUser controller", func() {
 
 			defer db.Close()
 
-			testDB = &DB{DB: db, Engine: rdsv1alpha1.MySQL}
+			testDB[DBUserName] = db
 
-			mock.ExpectExec("CREATE USER.+IDENTIFIED BY").WithArgs(DBUserUsername, PasswordSecretValue).WillReturnResult(sqlmock.NewResult(1, 1))
-			mock.ExpectExec(ExpectedGrantStatementSQL).WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectQuery("SELECT 1 FROM mysql.user WHERE").WithArgs(DBUserUsername).WillReturnRows(sqlmock.NewRows([]string{"1"}))
+			mock.ExpectExec("CREATE USER.+IDENTIFIED BY").WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectExec(ExpectedGrantStatementSQL).WillReturnResult(sqlmock.NewResult(1, 1))
 
 			By("Creating a new DBUser with a password")
 			dbUser := &rdsv1alpha1.DBUser{
@@ -236,9 +237,9 @@ var _ = Describe("DBUser controller", func() {
 
 			defer db.Close()
 
-			testDB = &DB{DB: db, Engine: rdsv1alpha1.MySQL}
+			testDB[DBUserName] = db
 
-			mock.ExpectExec("DROP USER").WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectExec("DROP USER").WillReturnResult(sqlmock.NewResult(1, 1))
 
 			By("Deleting DBUser object")
 			Expect(k8sClient.Delete(ctx, dbUser)).Should(Succeed())
@@ -375,10 +376,11 @@ var _ = Describe("DBUser controller", func() {
 
 			defer db.Close()
 
-			testDB = &DB{DB: db, Engine: rdsv1alpha1.MySQL}
+			testDB[DBUserName] = db
 
-			mock.ExpectExec("CREATE USER.+IDENTIFIED WITH AWSAuthenticationPlugin.+").WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
-			mock.ExpectExec(ExpectedGrantStatementSQL).WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectQuery("SELECT 1 FROM mysql.user WHERE").WithArgs(DBUserUsername).WillReturnRows(sqlmock.NewRows([]string{"1"}))
+			mock.ExpectExec("CREATE USER.+IDENTIFIED WITH AWSAuthenticationPlugin.+").WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectExec(ExpectedGrantStatementSQL).WillReturnResult(sqlmock.NewResult(1, 1))
 
 			By("Creating a new DBUser with UseIAMAuthentication")
 			dbUser := &rdsv1alpha1.DBUser{
@@ -533,10 +535,11 @@ var _ = Describe("DBUser controller", func() {
 
 			defer db.Close()
 
-			testDB = &DB{DB: db, Engine: rdsv1alpha1.Postgres}
+			testDB[DBUserName] = db
 
-			mock.ExpectExec("CREATE USER.+WITH PASSWORD").WithArgs(DBUserUsername, PasswordSecretValue).WillReturnResult(sqlmock.NewResult(1, 1))
-			mock.ExpectExec(ExpectedGrantStatementSQL).WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectQuery("SELECT 1 FROM pg_roles WHERE").WithArgs(DBUserUsername).WillReturnRows(sqlmock.NewRows([]string{"1"}))
+			mock.ExpectExec("CREATE USER.+WITH PASSWORD").WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectExec(ExpectedGrantStatementSQL).WillReturnResult(sqlmock.NewResult(1, 1))
 
 			By("Creating a new DBUser with a password")
 			dbUser := &rdsv1alpha1.DBUser{
@@ -689,11 +692,12 @@ var _ = Describe("DBUser controller", func() {
 
 			defer db.Close()
 
-			testDB = &DB{DB: db, Engine: rdsv1alpha1.Postgres}
+			testDB[DBUserName] = db
 
-			mock.ExpectExec("CREATE USER.+WITH LOGIN.+").WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
-			mock.ExpectExec("GRANT rds_iam TO").WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
-			mock.ExpectExec(ExpectedGrantStatementSQL).WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectQuery("SELECT 1 FROM pg_roles WHERE").WithArgs(DBUserUsername).WillReturnRows(sqlmock.NewRows([]string{"1"}))
+			mock.ExpectExec("CREATE USER.+WITH LOGIN.+").WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectExec("GRANT rds_iam TO").WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectExec(ExpectedGrantStatementSQL).WillReturnResult(sqlmock.NewResult(1, 1))
 
 			By("Creating a new DBUser with UseIAMAuthentication")
 			dbUser := &rdsv1alpha1.DBUser{
@@ -848,10 +852,11 @@ var _ = Describe("DBUser controller", func() {
 
 			defer db.Close()
 
-			testDB = &DB{DB: db, Engine: rdsv1alpha1.MySQL}
+			testDB[DBUserName] = db
 
-			mock.ExpectExec("CREATE USER.+IDENTIFIED BY").WithArgs(DBUserUsername, PasswordSecretValue).WillReturnResult(sqlmock.NewResult(1, 1))
-			mock.ExpectExec(ExpectedGrantStatementSQL).WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectQuery("SELECT 1 FROM mysql.user WHERE").WithArgs(DBUserUsername).WillReturnRows(sqlmock.NewRows([]string{"1"}))
+			mock.ExpectExec("CREATE USER.+IDENTIFIED BY").WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectExec(ExpectedGrantStatementSQL).WillReturnResult(sqlmock.NewResult(1, 1))
 
 			By("Creating a new DBUser with a password")
 			dbUser := &rdsv1alpha1.DBUser{
@@ -999,10 +1004,11 @@ var _ = Describe("DBUser controller", func() {
 
 			defer db.Close()
 
-			testDB = &DB{DB: db, Engine: rdsv1alpha1.MySQL}
+			testDB[DBUserName] = db
 
-			mock.ExpectExec("CREATE USER.+IDENTIFIED WITH AWSAuthenticationPlugin.+").WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
-			mock.ExpectExec(ExpectedGrantStatementSQL).WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectQuery("SELECT 1 FROM mysql.user WHERE").WithArgs(DBUserUsername).WillReturnRows(sqlmock.NewRows([]string{"1"}))
+			mock.ExpectExec("CREATE USER.+IDENTIFIED WITH AWSAuthenticationPlugin.+").WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectExec(ExpectedGrantStatementSQL).WillReturnResult(sqlmock.NewResult(1, 1))
 
 			By("Creating a new DBUser with UseIAMAuthentication")
 			dbUser := &rdsv1alpha1.DBUser{
@@ -1049,9 +1055,9 @@ var _ = Describe("DBUser controller", func() {
 
 		// >>>>> DBCluster | Postgres | Password <<<<<
 		It("Should create a user with a password in a Postgres database", func(done Done) {
-			DBClusterName := fmt.Sprintf("%s-aurora-postgres-password", DBClusterBaseName)
-			DBUserName := fmt.Sprintf("%s-aurora-postgres-password", DBUserBaseName)
-			PasswordSecretName := fmt.Sprintf("%s-aurora-postgres-password", PasswordBaseSecretName)
+			DBClusterName := fmt.Sprintf("%s-aurora-postgresql-password", DBClusterBaseName)
+			DBUserName := fmt.Sprintf("%s-aurora-postgresql-password", DBUserBaseName)
+			PasswordSecretName := fmt.Sprintf("%s-aurora-postgresql-password", PasswordBaseSecretName)
 
 			c := make(chan bool, 2)
 
@@ -1104,7 +1110,7 @@ var _ = Describe("DBUser controller", func() {
 				},
 				Spec: rdstypes.DBClusterSpec{
 					DBClusterIdentifier: strRef(DBClusterName),
-					Engine:              strRef("aurora-postgres"),
+					Engine:              strRef("aurora-postgresql"),
 					MasterUsername:      strRef("root"),
 					MasterUserPassword:  secretKeyReference,
 				},
@@ -1152,10 +1158,11 @@ var _ = Describe("DBUser controller", func() {
 
 			defer db.Close()
 
-			testDB = &DB{DB: db, Engine: rdsv1alpha1.Postgres}
+			testDB[DBUserName] = db
 
-			mock.ExpectExec("CREATE USER.+WITH PASSWORD").WithArgs(DBUserUsername, PasswordSecretValue).WillReturnResult(sqlmock.NewResult(1, 1))
-			mock.ExpectExec(ExpectedGrantStatementSQL).WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectQuery("SELECT 1 FROM pg_roles WHERE").WithArgs(DBUserUsername).WillReturnRows(sqlmock.NewRows([]string{"1"}))
+			mock.ExpectExec("CREATE USER.+WITH PASSWORD").WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectExec(ExpectedGrantStatementSQL).WillReturnResult(sqlmock.NewResult(1, 1))
 
 			By("Creating a new DBUser with a password")
 			dbUser := &rdsv1alpha1.DBUser{
@@ -1200,9 +1207,9 @@ var _ = Describe("DBUser controller", func() {
 
 		// >>>>> DBCluster | Postgres | UseIAMAuthentication <<<<<
 		It("Should create a user with IAM Authentication in a Postgres database", func(done Done) {
-			DBClusterName := fmt.Sprintf("%s-aurora-postgres-iam", DBClusterBaseName)
-			DBUserName := fmt.Sprintf("%s-aurora-postgres-iam", DBUserBaseName)
-			PasswordSecretName := fmt.Sprintf("%s-aurora-postgres-iam", PasswordBaseSecretName)
+			DBClusterName := fmt.Sprintf("%s-aurora-postgresql-iam", DBClusterBaseName)
+			DBUserName := fmt.Sprintf("%s-aurora-postgresql-iam", DBUserBaseName)
+			PasswordSecretName := fmt.Sprintf("%s-aurora-postgresql-iam", PasswordBaseSecretName)
 
 			c := make(chan bool, 2)
 
@@ -1255,7 +1262,7 @@ var _ = Describe("DBUser controller", func() {
 				},
 				Spec: rdstypes.DBClusterSpec{
 					DBClusterIdentifier: strRef(DBClusterName),
-					Engine:              strRef("aurora-postgres"),
+					Engine:              strRef("aurora-postgresql"),
 					MasterUsername:      strRef("root"),
 					MasterUserPassword:  secretKeyReference,
 				},
@@ -1303,11 +1310,12 @@ var _ = Describe("DBUser controller", func() {
 
 			defer db.Close()
 
-			testDB = &DB{DB: db, Engine: rdsv1alpha1.Postgres}
+			testDB[DBUserName] = db
 
-			mock.ExpectExec("CREATE USER.+WITH LOGIN.+").WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
-			mock.ExpectExec("GRANT rds_iam TO").WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
-			mock.ExpectExec(ExpectedGrantStatementSQL).WithArgs(DBUserUsername).WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectQuery("SELECT 1 FROM pg_roles WHERE").WithArgs(DBUserUsername).WillReturnRows(sqlmock.NewRows([]string{"1"}))
+			mock.ExpectExec("CREATE USER.+WITH LOGIN.+").WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectExec("GRANT rds_iam TO").WillReturnResult(sqlmock.NewResult(1, 1))
+			mock.ExpectExec(ExpectedGrantStatementSQL).WillReturnResult(sqlmock.NewResult(1, 1))
 
 			By("Creating a new DBUser with UseIAMAuthentication")
 			dbUser := &rdsv1alpha1.DBUser{

@@ -132,8 +132,10 @@ func (r *DBReplicationGroupReconciler) Reconcile(
 			actionStr = "create"
 		} else if instanceAction.Action == ActionUpdate {
 			log.V(1).Info("Patching instance", "instance", *instanceAction.Instance)
-			patch := client.MergeFrom(instanceAction.CurrentInstance)
-			err = r.Patch(context.TODO(), instanceAction.Instance, patch)
+			instance := instanceAction.CurrentInstance
+			patch := client.MergeFrom(instance.DeepCopy())
+			instance.Spec = instanceAction.Instance.Spec
+			err = r.Patch(context.TODO(), instance, patch)
 			actionStr = "update"
 		} else if instanceAction.Action == ActionDelete {
 			log.V(1).Info("Deleting instance", "instance", *instanceAction.Instance)
