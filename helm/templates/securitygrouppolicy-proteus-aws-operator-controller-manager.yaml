@@ -4,6 +4,8 @@ kind: SecurityGroupPolicy
 metadata:
   name: proteus-aws-operator
   namespace: ack-system
+  annotations:
+    "helm.sh/hook": pre-install,pre-upgrade
 spec:
   serviceAccountSelector:
     matchLabels:
