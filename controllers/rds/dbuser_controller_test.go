@@ -131,27 +131,28 @@ var _ = Describe("DBUser controller", func() {
 					MasterUsername:       strRef("root"),
 					MasterUserPassword:   secretKeyReference,
 				},
-				Status: rdstypes.DBInstanceStatus{
-					Conditions: []*ackv1alpha1.Condition{
-						&ackv1alpha1.Condition{
-							Type:   ackv1alpha1.ConditionTypeResourceSynced,
-							Status: "True",
-						},
-					},
-					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
-					},
-					Endpoint: &rdstypes.Endpoint{
-						Address:      strRef("test-hostname"),
-						HostedZoneID: strRef("test-hostedzoneid"),
-						Port:         int64Ref(3306),
-					},
-				},
+				Status: rdstypes.DBInstanceStatus{},
 			}
 			Expect(k8sClient.Create(ctx, dbInstance)).Should(Succeed())
 
 			// Fake that the rds-controller is actually active in the k8s cluster
+			dbInstance.Status = rdstypes.DBInstanceStatus{
+				Conditions: []*ackv1alpha1.Condition{
+					&ackv1alpha1.Condition{
+						Type:   ackv1alpha1.ConditionTypeResourceSynced,
+						Status: "True",
+					},
+				},
+				ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
+					ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+					OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
+				},
+				Endpoint: &rdstypes.Endpoint{
+					Address:      strRef("test-hostname"),
+					HostedZoneID: strRef("test-hostedzoneid"),
+					Port:         int64Ref(3306),
+				},
+			}
 			Expect(k8sClient.Status().Update(context.TODO(), dbInstance)).Should(Succeed())
 
 			dbInstanceLookupKey := types.NamespacedName{Name: DBInstanceName, Namespace: Namespace}
@@ -328,27 +329,28 @@ var _ = Describe("DBUser controller", func() {
 					MasterUsername:       strRef("root"),
 					MasterUserPassword:   secretKeyReference,
 				},
-				Status: rdstypes.DBInstanceStatus{
-					Conditions: []*ackv1alpha1.Condition{
-						&ackv1alpha1.Condition{
-							Type:   ackv1alpha1.ConditionTypeResourceSynced,
-							Status: "True",
-						},
-					},
-					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
-					},
-					Endpoint: &rdstypes.Endpoint{
-						Address:      strRef("test-hostname"),
-						HostedZoneID: strRef("test-hostedzoneid"),
-						Port:         int64Ref(3306),
-					},
-				},
+				Status: rdstypes.DBInstanceStatus{},
 			}
 			Expect(k8sClient.Create(ctx, dbInstance)).Should(Succeed())
 
 			// Fake that the rds-controller is actually active in the k8s cluster
+			dbInstance.Status = rdstypes.DBInstanceStatus{
+				Conditions: []*ackv1alpha1.Condition{
+					&ackv1alpha1.Condition{
+						Type:   ackv1alpha1.ConditionTypeResourceSynced,
+						Status: "True",
+					},
+				},
+				ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
+					ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+					OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
+				},
+				Endpoint: &rdstypes.Endpoint{
+					Address:      strRef("test-hostname"),
+					HostedZoneID: strRef("test-hostedzoneid"),
+					Port:         int64Ref(3306),
+				},
+			}
 			Expect(k8sClient.Status().Update(context.TODO(), dbInstance)).Should(Succeed())
 
 			dbInstanceLookupKey := types.NamespacedName{Name: DBInstanceName, Namespace: Namespace}
@@ -487,27 +489,28 @@ var _ = Describe("DBUser controller", func() {
 					MasterUsername:       strRef("root"),
 					MasterUserPassword:   secretKeyReference,
 				},
-				Status: rdstypes.DBInstanceStatus{
-					Conditions: []*ackv1alpha1.Condition{
-						&ackv1alpha1.Condition{
-							Type:   ackv1alpha1.ConditionTypeResourceSynced,
-							Status: "True",
-						},
-					},
-					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
-					},
-					Endpoint: &rdstypes.Endpoint{
-						Address:      strRef("test-hostname"),
-						HostedZoneID: strRef("test-hostedzoneid"),
-						Port:         int64Ref(3306),
-					},
-				},
+				Status: rdstypes.DBInstanceStatus{},
 			}
 			Expect(k8sClient.Create(ctx, dbInstance)).Should(Succeed())
 
 			// Fake that the rds-controller is actually active in the k8s cluster
+			dbInstance.Status = rdstypes.DBInstanceStatus{
+				Conditions: []*ackv1alpha1.Condition{
+					&ackv1alpha1.Condition{
+						Type:   ackv1alpha1.ConditionTypeResourceSynced,
+						Status: "True",
+					},
+				},
+				ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
+					ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+					OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
+				},
+				Endpoint: &rdstypes.Endpoint{
+					Address:      strRef("test-hostname"),
+					HostedZoneID: strRef("test-hostedzoneid"),
+					Port:         int64Ref(3306),
+				},
+			}
 			Expect(k8sClient.Status().Update(context.TODO(), dbInstance)).Should(Succeed())
 
 			dbInstanceLookupKey := types.NamespacedName{Name: DBInstanceName, Namespace: Namespace}
@@ -644,27 +647,28 @@ var _ = Describe("DBUser controller", func() {
 					MasterUsername:       strRef("root"),
 					MasterUserPassword:   secretKeyReference,
 				},
-				Status: rdstypes.DBInstanceStatus{
-					Conditions: []*ackv1alpha1.Condition{
-						&ackv1alpha1.Condition{
-							Type:   ackv1alpha1.ConditionTypeResourceSynced,
-							Status: "True",
-						},
-					},
-					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
-					},
-					Endpoint: &rdstypes.Endpoint{
-						Address:      strRef("test-hostname"),
-						HostedZoneID: strRef("test-hostedzoneid"),
-						Port:         int64Ref(3306),
-					},
-				},
+				Status: rdstypes.DBInstanceStatus{},
 			}
 			Expect(k8sClient.Create(ctx, dbInstance)).Should(Succeed())
 
 			// Fake that the rds-controller is actually active in the k8s cluster
+			dbInstance.Status = rdstypes.DBInstanceStatus{
+				Conditions: []*ackv1alpha1.Condition{
+					&ackv1alpha1.Condition{
+						Type:   ackv1alpha1.ConditionTypeResourceSynced,
+						Status: "True",
+					},
+				},
+				ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
+					ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+					OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
+				},
+				Endpoint: &rdstypes.Endpoint{
+					Address:      strRef("test-hostname"),
+					HostedZoneID: strRef("test-hostedzoneid"),
+					Port:         int64Ref(3306),
+				},
+			}
 			Expect(k8sClient.Status().Update(context.TODO(), dbInstance)).Should(Succeed())
 
 			dbInstanceLookupKey := types.NamespacedName{Name: DBInstanceName, Namespace: Namespace}
@@ -808,23 +812,24 @@ var _ = Describe("DBUser controller", func() {
 					MasterUsername:      strRef("root"),
 					MasterUserPassword:  secretKeyReference,
 				},
-				Status: rdstypes.DBClusterStatus{
-					Conditions: []*ackv1alpha1.Condition{
-						&ackv1alpha1.Condition{
-							Type:   ackv1alpha1.ConditionTypeResourceSynced,
-							Status: "True",
-						},
-					},
-					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
-					},
-					Endpoint: strRef("test-hostname:3306"),
-				},
+				Status: rdstypes.DBClusterStatus{},
 			}
 			Expect(k8sClient.Create(ctx, dbCluster)).Should(Succeed())
 
 			// Fake that the rds-controller is actually active in the k8s cluster
+			dbCluster.Status = rdstypes.DBClusterStatus{
+				Conditions: []*ackv1alpha1.Condition{
+					&ackv1alpha1.Condition{
+						Type:   ackv1alpha1.ConditionTypeResourceSynced,
+						Status: "True",
+					},
+				},
+				ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
+					ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+					OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
+				},
+				Endpoint: strRef("test-hostname:3306"),
+			}
 			Expect(k8sClient.Status().Update(context.TODO(), dbCluster)).Should(Succeed())
 
 			dbClusterLookupKey := types.NamespacedName{Name: DBClusterName, Namespace: Namespace}
@@ -960,23 +965,24 @@ var _ = Describe("DBUser controller", func() {
 					MasterUsername:      strRef("root"),
 					MasterUserPassword:  secretKeyReference,
 				},
-				Status: rdstypes.DBClusterStatus{
-					Conditions: []*ackv1alpha1.Condition{
-						&ackv1alpha1.Condition{
-							Type:   ackv1alpha1.ConditionTypeResourceSynced,
-							Status: "True",
-						},
-					},
-					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
-					},
-					Endpoint: strRef("test-hostname:3306"),
-				},
+				Status: rdstypes.DBClusterStatus{},
 			}
 			Expect(k8sClient.Create(ctx, dbCluster)).Should(Succeed())
 
 			// Fake that the rds-controller is actually active in the k8s cluster
+			dbCluster.Status = rdstypes.DBClusterStatus{
+				Conditions: []*ackv1alpha1.Condition{
+					&ackv1alpha1.Condition{
+						Type:   ackv1alpha1.ConditionTypeResourceSynced,
+						Status: "True",
+					},
+				},
+				ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
+					ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+					OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
+				},
+				Endpoint: strRef("test-hostname:3306"),
+			}
 			Expect(k8sClient.Status().Update(context.TODO(), dbCluster)).Should(Succeed())
 
 			dbClusterLookupKey := types.NamespacedName{Name: DBClusterName, Namespace: Namespace}
@@ -1114,23 +1120,24 @@ var _ = Describe("DBUser controller", func() {
 					MasterUsername:      strRef("root"),
 					MasterUserPassword:  secretKeyReference,
 				},
-				Status: rdstypes.DBClusterStatus{
-					Conditions: []*ackv1alpha1.Condition{
-						&ackv1alpha1.Condition{
-							Type:   ackv1alpha1.ConditionTypeResourceSynced,
-							Status: "True",
-						},
-					},
-					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
-					},
-					Endpoint: strRef("test-hostname:3306"),
-				},
+				Status: rdstypes.DBClusterStatus{},
 			}
 			Expect(k8sClient.Create(ctx, dbCluster)).Should(Succeed())
 
 			// Fake that the rds-controller is actually active in the k8s cluster
+			dbCluster.Status = rdstypes.DBClusterStatus{
+				Conditions: []*ackv1alpha1.Condition{
+					&ackv1alpha1.Condition{
+						Type:   ackv1alpha1.ConditionTypeResourceSynced,
+						Status: "True",
+					},
+				},
+				ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
+					ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+					OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
+				},
+				Endpoint: strRef("test-hostname:3306"),
+			}
 			Expect(k8sClient.Status().Update(context.TODO(), dbCluster)).Should(Succeed())
 
 			dbClusterLookupKey := types.NamespacedName{Name: DBClusterName, Namespace: Namespace}
@@ -1266,23 +1273,24 @@ var _ = Describe("DBUser controller", func() {
 					MasterUsername:      strRef("root"),
 					MasterUserPassword:  secretKeyReference,
 				},
-				Status: rdstypes.DBClusterStatus{
-					Conditions: []*ackv1alpha1.Condition{
-						&ackv1alpha1.Condition{
-							Type:   ackv1alpha1.ConditionTypeResourceSynced,
-							Status: "True",
-						},
-					},
-					ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
-						ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
-						OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
-					},
-					Endpoint: strRef("test-hostname:3306"),
-				},
+				Status: rdstypes.DBClusterStatus{},
 			}
 			Expect(k8sClient.Create(ctx, dbCluster)).Should(Succeed())
 
 			// Fake that the rds-controller is actually active in the k8s cluster
+			dbCluster.Status = rdstypes.DBClusterStatus{
+				Conditions: []*ackv1alpha1.Condition{
+					&ackv1alpha1.Condition{
+						Type:   ackv1alpha1.ConditionTypeResourceSynced,
+						Status: "True",
+					},
+				},
+				ACKResourceMetadata: &ackv1alpha1.ResourceMetadata{
+					ARN:            (*ackv1alpha1.AWSResourceName)(strRef("AWS-Resource-Name-12345")),
+					OwnerAccountID: (*ackv1alpha1.AWSAccountID)(strRef("1234567890")),
+				},
+				Endpoint: strRef("test-hostname:3306"),
+			}
 			Expect(k8sClient.Status().Update(context.TODO(), dbCluster)).Should(Succeed())
 
 			dbClusterLookupKey := types.NamespacedName{Name: DBClusterName, Namespace: Namespace}

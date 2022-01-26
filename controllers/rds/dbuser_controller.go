@@ -203,6 +203,8 @@ func (r *DBUserReconciler) Reconcile(
 		}
 	}
 
+	log.V(1).Info("Successfully created or updated DBUser", "req", req)
+
 	return ctrl.Result{}, nil
 }
 
