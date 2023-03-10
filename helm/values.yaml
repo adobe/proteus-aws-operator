@@ -4,10 +4,23 @@
 
 image:
   repository: docker-dc-micro-release.dr.corp.adobe.com/adobe-platform/proteus-aws-operator
-  tag: v0.0.10
+  tag: v0.0.11
 
 nameOverride: ""
 fullnameOverride: ""
+
+# Set to "namespace" to install the controller in a namespaced scope, will only
+# watch for object creation in the namespace. By default installScope is
+# cluster wide.
+installScope: cluster
+
+# Set the "namespace" the controller should watch
+watchNamespace: ""
+
+# Set to "retain" to keep all AWS resources intact even after the K8s resources
+# have been deleted. By default, the ACK controller will delete the AWS resource
+# before the K8s resource is removed.
+deletionPolicy: delete
 
 deployment:
   annotations: {}
@@ -25,3 +38,4 @@ resourceTags:
 #   - sg-12345deadbeaf
 #
 securityGroupIds: []
+
