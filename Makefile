@@ -115,10 +115,12 @@ docker-push: docker-build ## Push docker image with the manager.
 UNAME_S=$(shell uname -s)
 
 KUSTOMIZE = $(shell pwd)/bin/kustomize
-kustomize:
-	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+
+# kustomize:
+# 	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
 
 helm-build: kustomize k8split ## Build helm chart
+	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
 	mkdir -p build
 	$(shell cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG))
 	$(KUSTOMIZE) build config/default > build/kustomize.yaml
