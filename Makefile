@@ -114,13 +114,8 @@ docker-push: docker-build ## Push docker image with the manager.
 
 UNAME_S=$(shell uname -s)
 
-KUSTOMIZE = $(shell pwd)/bin/kustomize
-
-# kustomize:
-# 	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
 
 helm-build: kustomize k8split ## Build helm chart
-	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
 	mkdir -p build
 	$(shell cd config/manager && $(KUSTOMIZE) edit set image controller=$(IMG))
 	$(KUSTOMIZE) build config/default > build/kustomize.yaml
@@ -172,14 +167,27 @@ CONTROLLER_GEN = $(shell pwd)/bin/controller-gen
 controller-gen: ## Download controller-gen locally if necessary.
 	$(call go-get-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@v0.4.1)
 
-KUSTOMIZE = $(shell pwd)/bin/kustomize
-kustomize: ## Download kustomize locally if necessary.
-	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+# KUSTOMIZE = $(shell pwd)/bin/kustomize
+# kustomize: ## Download kustomize locally if necessary.
+# 	$(call go-get-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v3@v3.8.7)
+
+LOCALBIN ?= $(shell pwd)/bin
+$(LOCALBIN):
+	mkdir -p $(LOCALBIN)
+KUSTOMIZE ?= $(LOCALBIN)/kustomize
+
+## Tool Versions
+KUSTOMIZE_VERSION ?= v3.8.7
+
+KUSTOMIZE_INSTALL_SCRIPT ?= "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" 
+.PHONY: kustomize 
+kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary. 
+$(KUSTOMIZE): $(LOCALBIN)
+	test -s $(LOCALBIN)/kustomize || { curl -s $(KUSTOMIZE_INSTALL_SCRIPT) | bash -s -- $(subst v,,$(KUSTOMIZE_VERSION)) $(LOCALBIN); }
 
 K8SPLIT = $(shell pwd)/bin/k8split
 k8split: ## Download k8split locally if necessary.
-	$(call go-get-tool,$(K8SPLIT),github.com/brendanjryan/k8split@v0.0.0-20201231030408-7469c28221ff)
-
+	$(shell GOBIN=$(LOCALBIN) go install github.com/brendanjryan/k8split)
 
 # go-get-tool will 'go get' any package $2 and install it to $1.
 PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
