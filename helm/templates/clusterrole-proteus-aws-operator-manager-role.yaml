@@ -1,8 +1,15 @@
 apiVersion: rbac.authorization.k8s.io/v1
+{{ if eq .Values.installScope "cluster" }}
 kind: ClusterRole
 metadata:
     creationTimestamp: null
     name: proteus-aws-operator-manager-role
+{{ else }}    
+kind: Role
+metadata:
+    creationTimestamp: null
+    name: proteus-aws-operator-manager-role
+{{ end }}    
 rules:
     - apiGroups:
         - ""

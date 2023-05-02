@@ -55,9 +55,11 @@ func main() {
 	var enableLeaderElection bool
 	var probeAddr string
 	var WatchNamespace string
+	var DeletionPolicy string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.StringVar(&WatchNamespace, "watch-namespace", "default", "The namespace the controller watches.")
+	flag.StringVar(&DeletionPolicy, "deletion-policy", "default", "Skips deletion of deployed resources")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")

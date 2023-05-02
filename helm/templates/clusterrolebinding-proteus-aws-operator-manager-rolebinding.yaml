@@ -1,12 +1,20 @@
 apiVersion: rbac.authorization.k8s.io/v1
+{{ if eq .Values.installScope "cluster" }}
 kind: ClusterRoleBinding
 metadata:
     name: proteus-aws-operator-manager-rolebinding
 roleRef:
-    apiGroup: rbac.authorization.k8s.io
     kind: ClusterRole
+{{ else }}
+kind: RoleBinding
+metadata:
+    name: proteus-aws-operator-manager-rolebinding
+roleRef:
+    kind: Role
+{{ end }}    
+    apiGroup: rbac.authorization.k8s.io
     name: proteus-aws-operator-manager-role
 subjects:
     - kind: ServiceAccount
-      name: proteus-aws-operator-controller-manager
-      namespace: ack-system
+      name: {{ include "service-account.name" . }}
+      namespace: {{ .Release.Namespace }}
