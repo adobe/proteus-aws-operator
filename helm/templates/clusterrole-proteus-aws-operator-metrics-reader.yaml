@@ -1,9 +1,15 @@
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-    name: proteus-aws-operator-metrics-reader
-rules:
-    - nonResourceURLs:
-        - /metrics
-      verbs:
-        - get
+# {{ if eq .Values.installScope "cluster" }}
+# apiVersion: rbac.authorization.k8s.io/v1
+# kind: ClusterRole
+# metadata:
+#     name: proteus-aws-operator-metrics-reader    
+# # {{ else }}
+# # kind: Role
+# # metadata:
+# #     name: proteus-aws-operator-metrics-reader
+# rules:
+#     - nonResourceURLs:
+#         - /metrics
+#       verbs:
+#         - get
+# {{ end }}

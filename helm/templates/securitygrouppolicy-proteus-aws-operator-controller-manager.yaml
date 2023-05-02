@@ -3,7 +3,7 @@ apiVersion: vpcresources.k8s.aws/v1beta1
 kind: SecurityGroupPolicy
 metadata:
   name: proteus-aws-operator
-  namespace: ack-system
+  namespace: {{ .Release.Namespace }}
   annotations:
     "helm.sh/hook": pre-install,pre-upgrade
 spec:

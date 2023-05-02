@@ -28,11 +28,11 @@ If release name contains chart name it will be used as a full name.
 
 {{/* The name of the service account to use */}}
 {{- define "service-account.name" -}}
-    {{ default "default" .Values.serviceAccount.name }}
+    {{ default "proteus-aws-operator-controller-manager" .Values.serviceAccount.name }}
 {{- end -}}
 
 {{- define "watch-namespace" -}}
 {{- if eq .Values.installScope "namespace" -}}
-{{- .Release.Namespace -}}
+{{ .Values.watchNamespace | default .Release.Namespace }}
 {{- end -}}
 {{- end -}}
